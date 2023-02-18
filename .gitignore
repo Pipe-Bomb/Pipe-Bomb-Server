@@ -127,3 +127,7 @@ tests
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+*.db
+*.db-shm
+*.db-wal
