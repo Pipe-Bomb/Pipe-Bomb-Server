@@ -6,7 +6,7 @@ import APIVersionV1 from "./restapi/version/V1.js";
 import UserCache from "./authentication/UserCache.js";
 
 const database = new SQLite("music.db");
-// await database.resetDatabase();
+// await database.resetDatabase(); // uncomment to reset database on server start
 // database.createSchema();
 const api = new RestAPI(8000).start();
 
