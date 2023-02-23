@@ -1,4 +1,5 @@
 import Express from "express";
+import Cors from "cors";
 import UserCache from "../authentication/UserCache.js";
 import APIResponse from "../response/APIRespose.js";
 import Exception from "../response/Exception.js";
@@ -9,6 +10,7 @@ export default class RestAPI {
         this.started = false;
         this.starting = false;
         this.port = port;
+        this.express.use(Cors());
         this.express.use(Express.json());
     }
     start() {
@@ -64,6 +66,7 @@ export default class RestAPI {
             }
             res.status(callbackResponse.statusCode);
             if (callbackResponse.response instanceof Stream) {
+                res.contentType("audio/mp3");
                 return callbackResponse.response.pipe(res);
             }
             res.send(callbackResponse);

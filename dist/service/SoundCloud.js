@@ -50,7 +50,7 @@ export default class SoundCloud extends StreamingService {
             throw new Exception("SoundCloud service hasn't finished initialization.");
         try {
             const stream = await SCDL.download("https://api.soundcloud.com/tracks/" + trackID, {
-                highWaterMark: 1 << 25
+                highWaterMark: 1 << 16
             });
             return stream;
         }
