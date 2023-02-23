@@ -54,7 +54,7 @@ export default class SoundCloud extends StreamingService {
 
         try {
             const stream = await SCDL.download("https://api.soundcloud.com/tracks/" + trackID, {
-                highWaterMark: 1 << 25
+                highWaterMark: 1 << 16
             });
             return stream;
         } catch (e) {
