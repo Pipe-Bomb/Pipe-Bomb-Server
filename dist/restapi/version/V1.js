@@ -5,6 +5,12 @@ import APIVersion from "./APIVersion.js";
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI) {
         super("v1", restAPI);
+        this.createRoute("get", "/identify", false, async (requestInfo) => {
+            return new APIResponse(200, {
+                pipeBombServer: true,
+                name: "Cool Pipe Bomb"
+            });
+        });
         this.createRoute("post", "/playlists", true, async (requestInfo) => {
             if (typeof requestInfo.body?.playlist_title != "string")
                 throw new APIResponse(400, `Missing property 'playlist_title'`);
