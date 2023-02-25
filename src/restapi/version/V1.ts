@@ -8,6 +8,13 @@ import APIVersion from "./APIVersion.js";
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI: RestAPI) {
         super("v1", restAPI);
+
+        this.createRoute("get", "/identify", false, async requestInfo => {
+            return new APIResponse(200, {
+                pipeBombServer: true,
+                name: "Cool Pipe Bomb"
+            });
+        });
         
 
         this.createRoute("post", "/playlists", true, async requestInfo => { // create playlist
