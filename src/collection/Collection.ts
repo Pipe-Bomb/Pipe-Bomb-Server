@@ -3,11 +3,14 @@ import Database from "../database/Database.js";
 import Track from "../music/Track.js";
 import APIResponse from "../response/APIRespose.js";
 import ServiceManager from "../service/ServiceManager.js";
+import Config from "../Config.js";
 
 export default class Collection {
+    private static readonly timeout = Config().collection_cache_time;
+
     private readonly database: Database;
     public readonly collectionID: number;
-    public readonly name: string;
+    private name: string;
     public readonly owner: User;
     private trackList: Track[] = [];
 
@@ -68,11 +71,16 @@ export default class Collection {
         await this.database.runCommand(`DELETE FROM playlist_tracks WHERE playlist_id = ? AND track_id = ?`, [this.collectionID, track]);
     }
 
+    public async setName(name: string) {
+        this.name = name;
+        await this.database.runCommand(`UPDATE playlists SET playlist_name = ? WHERE playlist_id = ?`, [name, this.collectionID]);
+    }
+
     public resetCacheTimeout() {
         if (this.timer) clearTimeout(this.timer);
         this.timer = setTimeout(() => {
             this.clearCallback(this);
-        }, 60 * 60 * 1000);
+        }, Collection.timeout * 60_000);
     }
 
     public toJson() {

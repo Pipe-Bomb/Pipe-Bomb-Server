@@ -5,6 +5,7 @@ import APIResponse from "../response/APIRespose.js";
 import Exception from "../response/Exception.js";
 import RequestInfo from "./RequestInfo.js";
 import User from "../authentication/User.js";
+import Config from "../Config.js";
 import { Stream } from "stream";
 
 export default class RestAPI {
@@ -31,7 +32,7 @@ export default class RestAPI {
             this.port,
             () => {
                 this.started = true;
-                console.log(`******\n\nAPI is listening on http://127.0.0.1:${this.port}`);
+                console.log(`******\n\nAPI is listening on http://127.0.0.1:${this.port} under name '${Config().server_name}'`);
             }
         );
         return this;

@@ -2,8 +2,10 @@ import Track from "../music/Track.js";
 import APIResponse from "../response/APIRespose.js";
 import Exception from "../response/Exception.js";
 import StreamingService from "./StreamingService.js";
+import Config from "../Config.js";
 
 export default class ServiceManager {
+    private static readonly timeout = Config().track_cache_time;
     private static instance: ServiceManager = null;
 
     private services: Map<string, StreamingService> = new Map();
@@ -47,7 +49,7 @@ export default class ServiceManager {
             this.trackCache.set(track.trackID, track);
             setTimeout(() => {
                 this.trackCache.delete(track.trackID);
-            }, 60 * 60 * 1_000);
+            }, ServiceManager.timeout * 60_000);
             return track;
         }
         return null;

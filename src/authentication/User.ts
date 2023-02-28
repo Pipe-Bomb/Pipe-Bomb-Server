@@ -1,4 +1,8 @@
+import Config from "../Config.js";
+
 export default class User {
+    private static readonly timeout = Config().user_cache_time;
+
     userID: string;
     email: string;
     username: string;
@@ -19,7 +23,7 @@ export default class User {
         if (this.timer) clearTimeout(this.timer);
         this.timer = setTimeout(() => {
             this.clearCallback(this);
-        }, 60 * 60 * 1000);
+        }, User.timeout * 60_000);
     }
 
     public toJson() {

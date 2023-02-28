@@ -131,3 +131,5 @@ tests
 *.db
 *.db-shm
 *.db-wal
+
+Config.json
