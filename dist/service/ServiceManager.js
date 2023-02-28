@@ -1,6 +1,7 @@
 import Track from "../music/Track.js";
 import APIResponse from "../response/APIRespose.js";
 import Exception from "../response/Exception.js";
+import Config from "../Config.js";
 export default class ServiceManager {
     constructor() {
         this.services = new Map();
@@ -45,7 +46,7 @@ export default class ServiceManager {
             this.trackCache.set(track.trackID, track);
             setTimeout(() => {
                 this.trackCache.delete(track.trackID);
-            }, 60 * 60 * 1000);
+            }, ServiceManager.timeout * 60000);
             return track;
         }
         return null;
@@ -63,5 +64,6 @@ export default class ServiceManager {
         throw new APIResponse(400, `Invalid track ID '${trackID}'`);
     }
 }
+ServiceManager.timeout = Config().track_cache_time;
 ServiceManager.instance = null;
 //# sourceMappingURL=ServiceManager.js.map

@@ -2,13 +2,15 @@ import CollectionCache from "../../collection/CollectionCache.js";
 import APIResponse from "../../response/APIRespose.js";
 import ServiceManager from "../../service/ServiceManager.js";
 import APIVersion from "./APIVersion.js";
+import Config from "../../Config.js";
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI) {
         super("v1", restAPI);
+        const config = Config();
         this.createRoute("get", "/identify", false, async (requestInfo) => {
             return new APIResponse(200, {
                 pipeBombServer: true,
-                name: "Cool Pipe Bomb"
+                name: config.server_name
             });
         });
         this.createRoute("post", "/playlists", true, async (requestInfo) => {
@@ -65,6 +67,9 @@ export default class APIVersionV1 extends APIVersion {
                         }
                     }
                 }
+            }
+            if (typeof requestInfo.body?.name == "string") {
+                collection.setName(requestInfo.body.name);
             }
             return new APIResponse(200, collection.toJson());
         });

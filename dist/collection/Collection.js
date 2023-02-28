@@ -1,6 +1,7 @@
 import Track from "../music/Track.js";
 import APIResponse from "../response/APIRespose.js";
 import ServiceManager from "../service/ServiceManager.js";
+import Config from "../Config.js";
 export default class Collection {
     constructor(collectionID, name, database, trackList, clearCallback, owner) {
         this.trackList = [];
@@ -57,12 +58,16 @@ export default class Collection {
         this.trackList.splice(index, 1);
         await this.database.runCommand(`DELETE FROM playlist_tracks WHERE playlist_id = ? AND track_id = ?`, [this.collectionID, track]);
     }
+    async setName(name) {
+        this.name = name;
+        await this.database.runCommand(`UPDATE playlists SET playlist_name = ? WHERE playlist_id = ?`, [name, this.collectionID]);
+    }
     resetCacheTimeout() {
         if (this.timer)
             clearTimeout(this.timer);
         this.timer = setTimeout(() => {
             this.clearCallback(this);
-        }, 60 * 60 * 1000);
+        }, Collection.timeout * 60000);
     }
     toJson() {
         return {
@@ -73,4 +78,5 @@ export default class Collection {
         };
     }
 }
+Collection.timeout = Config().collection_cache_time;
 //# sourceMappingURL=Collection.js.map

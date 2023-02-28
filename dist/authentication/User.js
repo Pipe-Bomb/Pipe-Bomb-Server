@@ -1,3 +1,4 @@
+import Config from "../Config.js";
 export default class User {
     constructor(userID, email, username, clearCallback) {
         this.timer = null;
@@ -12,7 +13,7 @@ export default class User {
             clearTimeout(this.timer);
         this.timer = setTimeout(() => {
             this.clearCallback(this);
-        }, 60 * 60 * 1000);
+        }, User.timeout * 60000);
     }
     toJson() {
         return {
@@ -21,4 +22,5 @@ export default class User {
         };
     }
 }
+User.timeout = Config().user_cache_time;
 //# sourceMappingURL=User.js.map

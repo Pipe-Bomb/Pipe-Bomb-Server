@@ -3,6 +3,7 @@ import Cors from "cors";
 import UserCache from "../authentication/UserCache.js";
 import APIResponse from "../response/APIRespose.js";
 import Exception from "../response/Exception.js";
+import Config from "../Config.js";
 import { Stream } from "stream";
 export default class RestAPI {
     constructor(port) {
@@ -23,7 +24,7 @@ export default class RestAPI {
         this.starting = true;
         this.express.listen(this.port, () => {
             this.started = true;
-            console.log(`******\n\nAPI is listening on http://127.0.0.1:${this.port}`);
+            console.log(`******\n\nAPI is listening on http://127.0.0.1:${this.port} under name '${Config().server_name}'`);
         });
         return this;
     }
