@@ -36,7 +36,7 @@ export default class SoundCloud extends StreamingService {
                         out.push(new Track(`sc-${newTrackInfo.id}`, {
                             title: newTrackInfo.title,
                             artists: [newTrackInfo.user.username],
-                            image: newTrackInfo?.artwork_url || newTrackInfo?.user?.avatar_url
+                            image: newTrackInfo?.artwork_url || null
                         }));
                         break;
                     // todo: add support for artists and playlists
@@ -69,7 +69,7 @@ export default class SoundCloud extends StreamingService {
             return new Track("sc-" + trackInfo.id, {
                 title: trackInfo.title,
                 artists: [trackInfo.user.username],
-                image: trackInfo?.artwork_url || trackInfo?.user?.avatar_url
+                image: trackInfo?.artwork_url || null
             });
         } catch (e) {
             throw new Exception(e);
