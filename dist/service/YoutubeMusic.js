@@ -46,7 +46,6 @@ export default class YoutubeMusic extends StreamingService {
         trackID = this.convertTrackIDToLocal(trackID);
         try {
             const data = await YTDL.getInfo("https://www.youtube.com/watch?v=" + trackID);
-            console.log(data.videoDetails.author.avatar);
             return new Track(`ym-${trackID}`, {
                 title: data.videoDetails.title,
                 artists: [data.videoDetails.author.name],
