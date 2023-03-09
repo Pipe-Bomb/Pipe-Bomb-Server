@@ -23,7 +23,9 @@
     "better-sqlite3": "^8.1.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "node-youtube-music": "^0.10.2",
     "random-word-slugs": "^0.1.6",
-    "scdl-core": "^1.1.0"
+    "scdl-core": "^1.1.0",
+    "ytdl-core": "^4.11.2"
   }
 }
