@@ -57,7 +57,7 @@ export default class ServiceManager {
 
     public getServiceFromTrackID(trackID: Track | string): StreamingService {
         if (trackID instanceof Track) trackID = trackID.trackID;
-        if (trackID.split("-").length != 2) throw new APIResponse(400, `Invalid track ID '${trackID}'`);
+        if (trackID.split("-").length < 2) throw new APIResponse(400, `Invalid track ID '${trackID}'`);
         const prefix = trackID.split("-")[0];
         for (let service of this.services.values()) {
             if (service.prefix == prefix) return service;
