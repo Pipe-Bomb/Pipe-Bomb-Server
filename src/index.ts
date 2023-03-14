@@ -2,6 +2,7 @@ import SQLite from "./database/SQLite.js";
 import RestAPI from "./restapi/RestAPI.js";
 import SoundCloud from "./service/SoundCloud.js";
 import YoutubeMusic from "./service/YoutubeMusic.js";
+import Youtube from "./service/Youtube.js";
 import CollectionCache from "./collection/CollectionCache.js";
 import APIVersionV1 from "./restapi/version/V1.js";
 import UserCache from "./authentication/UserCache.js";
@@ -17,5 +18,6 @@ CollectionCache.getInstance().linkDatabase(database);
 
 new SoundCloud();
 new YoutubeMusic();
+new Youtube();
 
 new APIVersionV1(api);

@@ -26,6 +26,7 @@
     "node-youtube-music": "^0.10.2",
     "random-word-slugs": "^0.1.6",
     "scdl-core": "^1.1.0",
-    "ytdl-core": "^4.11.2"
+    "ytdl-core": "^4.11.2",
+    "ytsr": "^3.8.0"
   }
 }
