@@ -13,6 +13,19 @@ export default class APIVersionV1 extends APIVersion {
                 name: config.server_name
             });
         });
+        this.createRoute("get", "/services", false, async (requestInfo) => {
+            const serviceManager = ServiceManager.getInstance();
+            const services = serviceManager.getServiceList();
+            ;
+            const out = [];
+            for (let service of services) {
+                out.push({
+                    name: service,
+                    prefix: serviceManager.getService(service).prefix
+                });
+            }
+            return new APIResponse(200, out);
+        });
         this.createRoute("post", "/playlists", true, async (requestInfo) => {
             if (typeof requestInfo.body?.playlist_title != "string")
                 throw new APIResponse(400, `Missing property 'playlist_title'`);

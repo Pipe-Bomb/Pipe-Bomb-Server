@@ -1,27 +1,25 @@
-import * as YTM from "node-youtube-music";
+import YTSR from "ytsr";
 import YTDL from "ytdl-core";
-import Exception from "../response/Exception.js";
 import Track from "../music/Track.js";
+import Exception from "../response/Exception.js";
 import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIRespose.js";
-export default class YoutubeMusic extends StreamingService {
+export default class Youtube extends StreamingService {
     constructor() {
-        super("Youtube Music", "ym");
+        super("Youtube", "yt");
     }
     async search(query, page) {
         try {
-            const results = await YTM.searchMusics(query);
+            const results = await YTSR(query);
             const out = [];
-            results.forEach(data => {
-                const artists = [];
-                data.artists.forEach(artist => {
-                    artists.push(artist.name);
-                });
-                out.push(new Track(`ym-${data.youtubeId}`, {
-                    title: data.title,
-                    artists,
-                    image: data.thumbnailUrl || null
-                }));
+            results.items.forEach(data => {
+                if (data.type == "video") {
+                    out.push(new Track(`yt-${data.id}`, {
+                        title: data.title,
+                        artists: [data.author.name],
+                        image: data.thumbnails[0].url
+                    }));
+                }
             });
             return out;
         }
@@ -50,7 +48,7 @@ export default class YoutubeMusic extends StreamingService {
             if (!thumbnail && data.videoDetails.thumbnails.length) {
                 thumbnail = data.videoDetails.thumbnails[0].url;
             }
-            return new Track(`ym-${trackID}`, {
+            return new Track(`yt-${trackID}`, {
                 title: data.videoDetails.title,
                 artists: [data.videoDetails.author.name],
                 image: thumbnail
@@ -61,4 +59,4 @@ export default class YoutubeMusic extends StreamingService {
         }
     }
 }
-//# sourceMappingURL=YoutubeMusic.js.map
+//# sourceMappingURL=Youtube.js.map
