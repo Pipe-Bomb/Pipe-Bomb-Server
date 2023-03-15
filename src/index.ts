@@ -16,8 +16,8 @@ const api = new RestAPI(Config().server_port).start();
 UserCache.getInstance().linkDatabase(database);
 CollectionCache.getInstance().linkDatabase(database);
 
-new SoundCloud();
 new YoutubeMusic();
+new SoundCloud();
 new Youtube();
 
 new APIVersionV1(api);
