@@ -1,7 +1,7 @@
 import Axios from "axios";
 import APIResponse from "../response/APIRespose.js";
 import User from "./User.js";
-export default class UserCache {
+class UserCache {
     constructor() {
         this.users = new Map();
         this.tokenMap = new Map();
@@ -72,4 +72,5 @@ export default class UserCache {
     }
 }
 UserCache.instance = null;
+export default UserCache;
 //# sourceMappingURL=UserCache.js.map

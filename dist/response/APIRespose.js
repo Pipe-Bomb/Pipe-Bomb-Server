@@ -1,5 +1,5 @@
 import Exception from "./Exception.js";
-export default class APIResponse {
+class APIResponse {
     constructor(statusCode, response) {
         if (!(statusCode.toString() in APIResponse.statusCodes))
             throw new Exception(`'${statusCode}' is not a valid status code.`);
@@ -51,4 +51,5 @@ APIResponse.statusCodes = {
     '504': 'Gateway Timeout',
     '505': 'HTTP Version Not Supported'
 };
+export default APIResponse;
 //# sourceMappingURL=APIRespose.js.map

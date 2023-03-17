@@ -2,7 +2,7 @@ import Track from "../music/Track.js";
 import APIResponse from "../response/APIRespose.js";
 import ServiceManager from "../service/ServiceManager.js";
 import Config from "../Config.js";
-export default class Collection {
+class Collection {
     constructor(collectionID, name, database, trackList, clearCallback, owner) {
         this.trackList = [];
         this.timer = null;
@@ -79,4 +79,5 @@ export default class Collection {
     }
 }
 Collection.timeout = Config().collection_cache_time;
+export default Collection;
 //# sourceMappingURL=Collection.js.map

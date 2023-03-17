@@ -2,7 +2,7 @@ import Track from "../music/Track.js";
 import APIResponse from "../response/APIRespose.js";
 import Exception from "../response/Exception.js";
 import Config from "../Config.js";
-export default class ServiceManager {
+class ServiceManager {
     constructor() {
         this.services = new Map();
         this.trackCache = new Map();
@@ -66,4 +66,5 @@ export default class ServiceManager {
 }
 ServiceManager.timeout = Config().track_cache_time;
 ServiceManager.instance = null;
+export default ServiceManager;
 //# sourceMappingURL=ServiceManager.js.map

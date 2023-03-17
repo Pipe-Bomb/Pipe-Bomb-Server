@@ -1,5 +1,5 @@
 import Config from "../Config.js";
-export default class User {
+class User {
     constructor(userID, email, username, clearCallback) {
         this.timer = null;
         this.userID = userID;
@@ -23,4 +23,5 @@ export default class User {
     }
 }
 User.timeout = Config().user_cache_time;
+export default User;
 //# sourceMappingURL=User.js.map

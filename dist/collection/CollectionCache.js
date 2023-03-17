@@ -3,7 +3,7 @@ import Track from "../music/Track.js";
 import APIResponse from "../response/APIRespose.js";
 import ServiceManager from "../service/ServiceManager.js";
 import Collection from "./Collection.js";
-export default class CollectionCache {
+class CollectionCache {
     constructor() {
         this.collections = new Map();
         console.log("Created collection cache");
@@ -85,4 +85,5 @@ export default class CollectionCache {
     }
 }
 CollectionCache.instance = null;
+export default CollectionCache;
 //# sourceMappingURL=CollectionCache.js.map
