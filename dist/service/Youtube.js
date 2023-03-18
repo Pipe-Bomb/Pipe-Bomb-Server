@@ -30,11 +30,10 @@ export default class Youtube extends StreamingService {
     async getAudio(trackID) {
         trackID = this.convertTrackIDToLocal(trackID);
         try {
-            const stream = YTDL("https://www.youtube.com/watch?v=" + trackID, {
+            return YTDL("https://www.youtube.com/watch?v=" + trackID, {
                 filter: "audioonly",
-                highWaterMark: 1 << 16
+                quality: "highestaudio"
             });
-            return stream;
         }
         catch (e) {
             throw new APIResponse(400, `Invalid track ID '${trackID}'`);
@@ -57,6 +56,9 @@ export default class Youtube extends StreamingService {
         catch (e) {
             throw new Exception(e);
         }
+    }
+    async getSuggestedTracks(track) {
+        return []; // TODO: implement
     }
 }
 //# sourceMappingURL=Youtube.js.map

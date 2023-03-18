@@ -21,6 +21,9 @@ export default class RestAPI {
         if (this.starting) {
             throw "RestAPI is already starting!";
         }
+        this.createRoute("all", "*", false, async (requestInfo) => {
+            return new APIResponse(404, `Unknown endpoint '${requestInfo.endpoint}'`);
+        });
         this.starting = true;
         this.express.listen(this.port, () => {
             this.started = true;
@@ -33,6 +36,7 @@ export default class RestAPI {
     }
     createRoute(method, route, requireAuthentication, callback) {
         this.express[method](route, async (req, res) => {
+            const startTime = Date.now();
             let callbackResponse;
             let user = null;
             try {
@@ -44,7 +48,8 @@ export default class RestAPI {
                 const requestInfo = {
                     parameters: req.params,
                     body: req.body,
-                    user
+                    user,
+                    endpoint: req.url
                 };
                 callbackResponse = await callback(requestInfo);
             }
@@ -65,12 +70,15 @@ export default class RestAPI {
             if (!(callbackResponse instanceof APIResponse)) {
                 callbackResponse = new APIResponse(500, "Internal server error");
             }
+            callbackResponse.processTime = Date.now() - startTime;
             res.status(callbackResponse.statusCode);
             if (callbackResponse.response instanceof Stream) {
-                res.contentType("audio/mp3");
-                return callbackResponse.response.pipe(res);
+                res.contentType("audio/mpeg");
+                callbackResponse.response.pipe(res);
             }
-            res.send(callbackResponse);
+            else {
+                res.send(callbackResponse);
+            }
         });
     }
 }

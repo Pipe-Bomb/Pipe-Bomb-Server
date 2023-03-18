@@ -1,6 +1,7 @@
 import Exception from "./Exception.js";
 class APIResponse {
     constructor(statusCode, response) {
+        this.processTime = null;
         if (!(statusCode.toString() in APIResponse.statusCodes))
             throw new Exception(`'${statusCode}' is not a valid status code.`);
         this.statusCode = statusCode;

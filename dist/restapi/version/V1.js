@@ -107,6 +107,12 @@ export default class APIVersionV1 extends APIVersion {
             const track = await ServiceManager.getInstance().getTrackInfo(requestInfo.parameters.track_id);
             return new APIResponse(200, track);
         });
+        this.createRoute("get", "/tracks/:track_id/suggested", true, async (requestInfo) => {
+            const serviceManager = ServiceManager.getInstance();
+            const track = await serviceManager.getTrackInfo(requestInfo.parameters.track_id);
+            const suggestions = await serviceManager.getServiceFromTrackID(track.trackID).getSuggestedTracks(track);
+            return new APIResponse(200, suggestions);
+        });
     }
     async getCollectionFromRequestInfo(requestInfo) {
         if (!requestInfo.parameters.playlist_id)

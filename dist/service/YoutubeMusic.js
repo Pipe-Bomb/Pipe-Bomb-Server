@@ -60,5 +60,27 @@ export default class YoutubeMusic extends StreamingService {
             throw new Exception(e);
         }
     }
+    async getSuggestedTracks(track) {
+        const trackID = this.convertTrackIDToLocal(track.trackID);
+        try {
+            const results = await YTM.getSuggestions(trackID);
+            const out = [];
+            results.forEach(data => {
+                const artists = [];
+                data.artists.forEach(artist => {
+                    artists.push(artist.name);
+                });
+                out.push(new Track(`ym-${data.youtubeId}`, {
+                    title: data.title,
+                    artists,
+                    image: data.thumbnailUrl || null
+                }));
+            });
+            return out;
+        }
+        catch (e) {
+            throw new Exception(e);
+        }
+    }
 }
 //# sourceMappingURL=YoutubeMusic.js.map

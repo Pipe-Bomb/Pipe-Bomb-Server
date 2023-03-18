@@ -49,7 +49,7 @@ class ServiceManager {
             }, ServiceManager.timeout * 60000);
             return track;
         }
-        return null;
+        throw new APIResponse(400, `'${trackID}' is not a valid track ID`);
     }
     getServiceFromTrackID(trackID) {
         if (trackID instanceof Track)
