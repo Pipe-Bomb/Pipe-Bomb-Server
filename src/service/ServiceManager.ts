@@ -52,7 +52,7 @@ export default class ServiceManager {
             }, ServiceManager.timeout * 60_000);
             return track;
         }
-        return null;
+        throw new APIResponse(400, `'${trackID}' is not a valid track ID`);
     }
 
     public getServiceFromTrackID(trackID: Track | string): StreamingService {

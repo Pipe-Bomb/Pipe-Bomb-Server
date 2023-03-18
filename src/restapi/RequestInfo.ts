@@ -5,5 +5,6 @@ export default interface RequestInfo {
         [key: string]: string;
     };
     body: any,
-    user: User
+    user: User,
+    endpoint: string
 }

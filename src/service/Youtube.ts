@@ -1,5 +1,6 @@
 import YTSR from "ytsr";
 import YTDL from "ytdl-core"
+import YTS from "yt-search";
 
 import Track from "../music/Track.js";
 import Exception from "../response/Exception.js";
@@ -36,11 +37,10 @@ export default class Youtube extends StreamingService {
         trackID = this.convertTrackIDToLocal(trackID);
 
         try {
-            const stream = YTDL("https://www.youtube.com/watch?v=" + trackID, {
+            return YTDL("https://www.youtube.com/watch?v=" + trackID, {
                 filter: "audioonly",
-                highWaterMark: 1 << 16  
+                quality: "highestaudio"
             });
-            return stream;
         } catch (e) {
             throw new APIResponse(400, `Invalid track ID '${trackID}'`);
         }
@@ -64,5 +64,9 @@ export default class Youtube extends StreamingService {
         } catch (e) {
             throw new Exception(e);
         }
+    }
+
+    public async getSuggestedTracks(track: Track): Promise<Track[]> {
+        return []; // TODO: implement
     }
 }
