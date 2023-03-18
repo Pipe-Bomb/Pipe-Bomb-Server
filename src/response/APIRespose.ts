@@ -48,6 +48,7 @@ export default class APIResponse {
     public readonly statusCode: number;
     public readonly statusMessage: string;
     public readonly response: any;
+    public processTime: number | null = null;
 
     constructor(statusCode: number, response: any) {
         if (!(statusCode.toString() in APIResponse.statusCodes)) throw new Exception(`'${statusCode}' is not a valid status code.`);

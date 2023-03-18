@@ -11,7 +11,7 @@ import Config from "./Config.js";
 const database = new SQLite("music.db");
 // await database.resetDatabase(); // uncomment to reset database on server start
 // database.createSchema();
-const api = new RestAPI(Config().server_port).start();
+const api = new RestAPI(Config().server_port);
 
 UserCache.getInstance().linkDatabase(database);
 CollectionCache.getInstance().linkDatabase(database);
@@ -21,3 +21,5 @@ new SoundCloud();
 new Youtube();
 
 new APIVersionV1(api);
+
+api.start();

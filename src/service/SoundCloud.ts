@@ -1,16 +1,22 @@
 import { SoundCloud as SCDL } from "scdl-core";
-import Exception from "../response/Exception.js";
+import Axios from "axios";
 
+import Exception from "../response/Exception.js";
 import Track from "../music/Track.js";
 import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIRespose.js";
 
 let isConnected = false;
+let clientID: string = null;
+const BASE_URL = "https://api-v2.soundcloud.com";
+
 (async () => {
     console.log("Connecting to SoundCloud...");
     await SCDL.connect();
     console.log("Connected to SoundCloud!");
     isConnected = true;
+    const anyReference: any = SCDL;
+    clientID = anyReference.clientId;
 })();
 
 export default class SoundCloud extends StreamingService {
@@ -78,5 +84,28 @@ export default class SoundCloud extends StreamingService {
     
     private isReady(): boolean {
         return isConnected;
+    }
+
+    public async getSuggestedTracks(track: Track): Promise<Track[]> {
+        const trackID = this.convertTrackIDToLocal(track.trackID);
+
+        try {
+            const data = await Axios.get(`${BASE_URL}/tracks/${trackID}/related?client_id=${clientID}`);
+            if (data.status != 200) throw "status code " + data.status;
+            if (!Array.isArray(data.data.collection)) throw "invalid response";
+
+            const out: Track[] = [];
+
+            data.data.collection.forEach(newTrackInfo => {
+                out.push(new Track(`sc-${newTrackInfo.id}`, {
+                    title: newTrackInfo.title,
+                    artists: [newTrackInfo.user.username],
+                    image: newTrackInfo?.artwork_url || null
+                }));
+            })
+            return out;
+        } catch (e) {
+            throw new Exception(e);
+        }
     }
 }
