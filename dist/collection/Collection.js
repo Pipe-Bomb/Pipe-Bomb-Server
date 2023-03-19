@@ -74,8 +74,10 @@ class Collection {
     }
     getSuggestedTracks() {
         return new Promise(resolve => {
-            if (this.suggestedTracks.length && Date.now() / 1000 - this.suggestedTracksUpdate < 3600)
+            if (this.suggestedTracksUpdate && Date.now() / 1000 - this.suggestedTracksUpdate < 3600)
                 return resolve(Array.from(this.suggestedTracks));
+            if (!this.trackList.length)
+                return resolve([]);
             const trackIDs = this.trackList.map(track => track.trackID);
             const shuffledIds = shuffle(trackIDs);
             const allTracks = [];
