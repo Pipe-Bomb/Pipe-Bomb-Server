@@ -4,6 +4,7 @@ import Track from "../music/Track.js";
 import APIResponse from "../response/APIRespose.js";
 import ServiceManager from "../service/ServiceManager.js";
 import Config from "../Config.js";
+import { shuffle } from "../Utils.js";
 
 export default class Collection {
     private static readonly timeout = Config().collection_cache_time;
@@ -13,6 +14,8 @@ export default class Collection {
     private name: string;
     public readonly owner: User;
     private trackList: Track[] = [];
+    private suggestedTracks: Track[] = [];
+    private suggestedTracksUpdate: number = null;
 
     private timer: NodeJS.Timeout = null;
     private clearCallback: (collection: Collection) => void;
@@ -81,6 +84,51 @@ export default class Collection {
         this.timer = setTimeout(() => {
             this.clearCallback(this);
         }, Collection.timeout * 60_000);
+    }
+
+    public getSuggestedTracks() {
+        return new Promise<Track[]>(resolve => {
+            if (this.suggestedTracks.length && Date.now() / 1000 - this.suggestedTracksUpdate < 3600) return resolve(Array.from(this.suggestedTracks));
+
+            const trackIDs = this.trackList.map(track => track.trackID);
+            const shuffledIds = shuffle(trackIDs);
+    
+            const allTracks: Track[] = [];
+            const THREADS = 3;
+
+            let openThreads = THREADS;
+    
+            async function loadSuggested(collection: Collection, trackID: string) {
+                try {
+                    const serviceManager = ServiceManager.getInstance();
+                    const service = serviceManager.getServiceFromTrackID(trackID);
+                    const parentTrack = await serviceManager.getTrackInfo(trackID);
+                    const suggestions = await service.getSuggestedTracks(parentTrack);
+                    for (let track of suggestions) {
+                        if (!trackIDs.includes(track.trackID) && !allTracks.includes(track)) {
+                            allTracks.push(track);
+                        }
+                    }
+                    allTracks.push(...suggestions);
+                } catch (e) {
+                    console.error(e);
+                }
+                if (allTracks.length > 30 || !shuffledIds.length) {
+                    if (--openThreads <= 0) {
+                        collection.suggestedTracks = shuffle(allTracks).slice(0, 30);
+                        collection.suggestedTracksUpdate = Math.floor(Date.now() / 1000);
+
+                        resolve(Array.from(collection.suggestedTracks));
+                    }
+                } else {
+                    loadSuggested(collection, shuffledIds.shift());
+                }
+            }
+    
+            for (let i = 0; i < THREADS && shuffledIds.length; i++) {
+                loadSuggested(this, shuffledIds.shift());
+            }
+        });
     }
 
     public toJson() {

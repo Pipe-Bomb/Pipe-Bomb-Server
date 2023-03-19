@@ -72,6 +72,12 @@ export default class APIVersionV1 extends APIVersion {
             await collection.loadPage(0);
             return new APIResponse(200, collection.toJson());
         });
+
+        this.createRoute("get", "/playlists/:playlist_id/suggested", true, async requestInfo => {
+            const collection = await this.getCollectionFromRequestInfo(requestInfo);
+            const suggestions = await collection.getSuggestedTracks();
+            return new APIResponse(200, suggestions);
+        });
         
 
         this.createRoute("put", "/playlists/:playlist_id", true, async requestInfo => { // add/remove tracks to playlist
