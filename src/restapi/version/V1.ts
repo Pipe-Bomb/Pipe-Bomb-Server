@@ -82,6 +82,8 @@ export default class APIVersionV1 extends APIVersion {
 
         this.createRoute("put", "/playlists/:playlist_id", true, async requestInfo => { // add/remove tracks to playlist
             const collection = await this.getCollectionFromRequestInfo(requestInfo);
+            if (collection.owner.userID != requestInfo.user.userID) throw new APIResponse(401, `Not authorized to edit playlist`);
+
             if (Array.isArray(requestInfo.body?.tracks?.add)) {
                 for (let trackID of requestInfo.body.tracks.add) {
                     if (typeof trackID == "string") {
@@ -114,7 +116,7 @@ export default class APIVersionV1 extends APIVersion {
 
         this.createRoute("delete", "/playlists/:playlist_id", true, async requestInfo => { // delete playlist
             const collection = await this.getCollectionFromRequestInfo(requestInfo);
-            if (collection.owner.userID != requestInfo.user.userID) throw new APIResponse(401, `Not authorized to delete playlist`);
+            if (collection.owner.userID != requestInfo.user.userID) throw new APIResponse(403, `Not authorized to delete playlist`);
             await CollectionCache.getInstance().deleteCollection(collection);
             return new APIResponse(204, null);
         });
