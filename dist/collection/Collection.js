@@ -81,7 +81,7 @@ class Collection {
             const trackIDs = this.trackList.map(track => track.trackID);
             const shuffledIds = shuffle(trackIDs);
             const allTracks = [];
-            const THREADS = 3;
+            const THREADS = Math.min(3, trackIDs.length);
             let openThreads = THREADS;
             async function loadSuggested(collection, trackID) {
                 try {
