@@ -96,7 +96,7 @@ export default class Collection {
             const shuffledIds = shuffle(trackIDs);
     
             const allTracks: Track[] = [];
-            const THREADS = 3;
+            const THREADS = Math.min(3, trackIDs.length);
 
             let openThreads = THREADS;
     
