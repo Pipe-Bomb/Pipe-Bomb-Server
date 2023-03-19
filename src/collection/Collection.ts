@@ -95,6 +95,7 @@ export default class Collection {
             const trackIDs = this.trackList.map(track => track.trackID);
             const shuffledIds = shuffle(trackIDs);
     
+            const allTrackIDs: string[] = [];
             const allTracks: Track[] = [];
             const THREADS = Math.min(3, trackIDs.length);
 
@@ -107,7 +108,8 @@ export default class Collection {
                     const parentTrack = await serviceManager.getTrackInfo(trackID);
                     const suggestions = await service.getSuggestedTracks(parentTrack);
                     for (let track of suggestions) {
-                        if (!trackIDs.includes(track.trackID) && !allTracks.includes(track)) {
+                        if (!trackIDs.includes(track.trackID) && !allTrackIDs.includes(track.trackID)) {
+                            allTrackIDs.push(track.trackID);
                             allTracks.push(track);
                         }
                     }
