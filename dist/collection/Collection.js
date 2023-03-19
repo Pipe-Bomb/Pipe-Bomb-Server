@@ -2,9 +2,12 @@ import Track from "../music/Track.js";
 import APIResponse from "../response/APIRespose.js";
 import ServiceManager from "../service/ServiceManager.js";
 import Config from "../Config.js";
+import { shuffle } from "../Utils.js";
 class Collection {
     constructor(collectionID, name, database, trackList, clearCallback, owner) {
         this.trackList = [];
+        this.suggestedTracks = [];
+        this.suggestedTracksUpdate = null;
         this.timer = null;
         this.collectionID = collectionID;
         this.name = name;
@@ -68,6 +71,47 @@ class Collection {
         this.timer = setTimeout(() => {
             this.clearCallback(this);
         }, Collection.timeout * 60000);
+    }
+    getSuggestedTracks() {
+        return new Promise(resolve => {
+            if (this.suggestedTracks.length && Date.now() / 1000 - this.suggestedTracksUpdate < 3600)
+                return resolve(Array.from(this.suggestedTracks));
+            const trackIDs = this.trackList.map(track => track.trackID);
+            const shuffledIds = shuffle(trackIDs);
+            const allTracks = [];
+            const THREADS = 3;
+            let openThreads = THREADS;
+            async function loadSuggested(collection, trackID) {
+                try {
+                    const serviceManager = ServiceManager.getInstance();
+                    const service = serviceManager.getServiceFromTrackID(trackID);
+                    const parentTrack = await serviceManager.getTrackInfo(trackID);
+                    const suggestions = await service.getSuggestedTracks(parentTrack);
+                    for (let track of suggestions) {
+                        if (!trackIDs.includes(track.trackID) && !allTracks.includes(track)) {
+                            allTracks.push(track);
+                        }
+                    }
+                    allTracks.push(...suggestions);
+                }
+                catch (e) {
+                    console.error(e);
+                }
+                if (allTracks.length > 30 || !shuffledIds.length) {
+                    if (--openThreads <= 0) {
+                        collection.suggestedTracks = shuffle(allTracks).slice(0, 30);
+                        collection.suggestedTracksUpdate = Math.floor(Date.now() / 1000);
+                        resolve(Array.from(collection.suggestedTracks));
+                    }
+                }
+                else {
+                    loadSuggested(collection, shuffledIds.shift());
+                }
+            }
+            for (let i = 0; i < THREADS && shuffledIds.length; i++) {
+                loadSuggested(this, shuffledIds.shift());
+            }
+        });
     }
     toJson() {
         return {
