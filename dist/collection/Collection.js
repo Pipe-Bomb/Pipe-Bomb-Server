@@ -80,6 +80,7 @@ class Collection {
                 return resolve([]);
             const trackIDs = this.trackList.map(track => track.trackID);
             const shuffledIds = shuffle(trackIDs);
+            const allTrackIDs = [];
             const allTracks = [];
             const THREADS = Math.min(3, trackIDs.length);
             let openThreads = THREADS;
@@ -90,7 +91,8 @@ class Collection {
                     const parentTrack = await serviceManager.getTrackInfo(trackID);
                     const suggestions = await service.getSuggestedTracks(parentTrack);
                     for (let track of suggestions) {
-                        if (!trackIDs.includes(track.trackID) && !allTracks.includes(track)) {
+                        if (!trackIDs.includes(track.trackID) && !allTrackIDs.includes(track.trackID)) {
+                            allTrackIDs.push(track.trackID);
                             allTracks.push(track);
                         }
                     }
