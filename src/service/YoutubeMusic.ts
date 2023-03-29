@@ -5,6 +5,8 @@ import Exception from "../response/Exception.js";
 import Track from "../music/Track.js";
 import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIRespose.js";
+import ServiceManager from "./ServiceManager.js";
+import StreamInfo from "./StreamInfo.js";
 
 export default class YoutubeMusic extends StreamingService {
     constructor() {
@@ -34,18 +36,10 @@ export default class YoutubeMusic extends StreamingService {
         }
     }
 
-    public async getAudio(trackID: string): Promise<any> {
+    public getAudio(trackID: string): Promise<StreamInfo | string> {
         trackID = this.convertTrackIDToLocal(trackID);
 
-        try {
-            const stream = YTDL("https://www.youtube.com/watch?v=" + trackID, {
-                filter: "audioonly",
-                highWaterMark: 1 << 16  
-            });
-            return stream;
-        } catch (e) {
-            throw new APIResponse(400, `Invalid track ID '${trackID}'`);
-        }
+        return ServiceManager.getInstance().getService("Youtube").getAudio(trackID);
     }
 
     public async getTrack(trackID: string): Promise<Track> {

@@ -1,5 +1,6 @@
 import Track from "../music/Track.js";
 import ServiceManager from "./ServiceManager.js";
+import StreamInfo from "./StreamInfo.js";
 
 export default abstract class StreamingService {
     public readonly name: string;
@@ -13,7 +14,7 @@ export default abstract class StreamingService {
     }
 
     public abstract search(query: string, page?: number): Promise<Track[]>;
-    public abstract getAudio(trackID: string): Promise<any>; // todo: return stream instead of any
+    public abstract getAudio(trackID: string): Promise<StreamInfo | string>; // todo: return stream instead of any
     public abstract getTrack(trackID: string): Promise<Track>;
     public abstract getSuggestedTracks(track: Track): Promise<Track[]>;
 

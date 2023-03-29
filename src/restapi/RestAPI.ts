@@ -7,6 +7,7 @@ import RequestInfo from "./RequestInfo.js";
 import User from "../authentication/User.js";
 import Config from "../Config.js";
 import { Stream } from "stream";
+import StreamInfo from "../service/StreamInfo.js";
 
 export default class RestAPI {
     public readonly port: number;
@@ -89,10 +90,19 @@ export default class RestAPI {
 
             callbackResponse.processTime = Date.now() - startTime;
 
+            if (callbackResponse.statusCode == 301 || callbackResponse.statusCode == 302) {
+                res.redirect(callbackResponse.statusCode, callbackResponse.response);
+                return;
+            }
+
             res.status(callbackResponse.statusCode);
-            if (callbackResponse.response instanceof Stream) {
-                res.contentType("audio/mpeg");
-                callbackResponse.response.pipe(res);
+
+            if (callbackResponse.response instanceof StreamInfo) {
+                res.contentType(callbackResponse.response.contentType);
+                if (callbackResponse.response.contentLength) res.set({
+                    "Content-Length": callbackResponse.response.contentLength
+                });
+                callbackResponse.response.stream.pipe(res);
             } else {
                 res.send(callbackResponse);
             }

@@ -5,6 +5,7 @@ import Exception from "../response/Exception.js";
 import Track from "../music/Track.js";
 import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIRespose.js";
+import StreamInfo from "./StreamInfo.js";
 
 let isConnected = false;
 let clientID: string = null;
@@ -54,7 +55,7 @@ export default class SoundCloud extends StreamingService {
         }
     }
 
-    public async getAudio(trackID: string): Promise<any> {
+    public async getAudio(trackID: string): Promise<StreamInfo | string> {
         trackID = this.convertTrackIDToLocal(trackID);
         if (!this.isReady()) throw new Exception("SoundCloud service hasn't finished initialization.");
 
@@ -62,7 +63,8 @@ export default class SoundCloud extends StreamingService {
             const stream = await SCDL.download("https://api.soundcloud.com/tracks/" + trackID, {
                 highWaterMark: 1 << 16
             });
-            return stream;
+
+            return new StreamInfo(stream, "audio/mpeg", 0);
         } catch (e) {
             throw new APIResponse(400, `Invalid track ID '${trackID}'`);
         }
