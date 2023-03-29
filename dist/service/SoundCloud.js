@@ -4,6 +4,7 @@ import Exception from "../response/Exception.js";
 import Track from "../music/Track.js";
 import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIRespose.js";
+import StreamInfo from "./StreamInfo.js";
 let isConnected = false;
 let clientID = null;
 const BASE_URL = "https://api-v2.soundcloud.com";
@@ -57,7 +58,7 @@ export default class SoundCloud extends StreamingService {
             const stream = await SCDL.download("https://api.soundcloud.com/tracks/" + trackID, {
                 highWaterMark: 1 << 16
             });
-            return stream;
+            return new StreamInfo(stream, "audio/mpeg", 0);
         }
         catch (e) {
             throw new APIResponse(400, `Invalid track ID '${trackID}'`);

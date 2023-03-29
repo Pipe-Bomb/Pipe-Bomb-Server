@@ -27,17 +27,25 @@ export default class Youtube extends StreamingService {
             throw new Exception(e);
         }
     }
-    async getAudio(trackID) {
+    getAudio(trackID) {
         trackID = this.convertTrackIDToLocal(trackID);
-        try {
-            return YTDL("https://www.youtube.com/watch?v=" + trackID, {
-                filter: "audioonly",
-                quality: "highestaudio"
-            });
-        }
-        catch (e) {
-            throw new APIResponse(400, `Invalid track ID '${trackID}'`);
-        }
+        return new Promise((resolve, reject) => {
+            try {
+                const video = YTDL("https://www.youtube.com/watch?v=" + trackID, {
+                    filter: "audioonly",
+                    quality: "highestaudio"
+                });
+                video.on("info", async (info, format) => {
+                    resolve(format.url);
+                });
+                video.on("error", e => {
+                    reject(new Exception(e));
+                });
+            }
+            catch (e) {
+                reject(new APIResponse(400, `Invalid track ID '${trackID}'`));
+            }
+        });
     }
     async getTrack(trackID) {
         trackID = this.convertTrackIDToLocal(trackID);

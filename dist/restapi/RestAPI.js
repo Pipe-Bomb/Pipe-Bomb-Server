@@ -4,7 +4,7 @@ import UserCache from "../authentication/UserCache.js";
 import APIResponse from "../response/APIRespose.js";
 import Exception from "../response/Exception.js";
 import Config from "../Config.js";
-import { Stream } from "stream";
+import StreamInfo from "../service/StreamInfo.js";
 export default class RestAPI {
     constructor(port) {
         this.express = Express();
@@ -71,10 +71,18 @@ export default class RestAPI {
                 callbackResponse = new APIResponse(500, "Internal server error");
             }
             callbackResponse.processTime = Date.now() - startTime;
+            if (callbackResponse.statusCode == 301 || callbackResponse.statusCode == 302) {
+                res.redirect(callbackResponse.statusCode, callbackResponse.response);
+                return;
+            }
             res.status(callbackResponse.statusCode);
-            if (callbackResponse.response instanceof Stream) {
-                res.contentType("audio/mpeg");
-                callbackResponse.response.pipe(res);
+            if (callbackResponse.response instanceof StreamInfo) {
+                res.contentType(callbackResponse.response.contentType);
+                if (callbackResponse.response.contentLength)
+                    res.set({
+                        "Content-Length": callbackResponse.response.contentLength
+                    });
+                callbackResponse.response.stream.pipe(res);
             }
             else {
                 res.send(callbackResponse);

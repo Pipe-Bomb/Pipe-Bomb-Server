@@ -3,7 +3,7 @@ import YTDL from "ytdl-core";
 import Exception from "../response/Exception.js";
 import Track from "../music/Track.js";
 import StreamingService from "./StreamingService.js";
-import APIResponse from "../response/APIRespose.js";
+import ServiceManager from "./ServiceManager.js";
 export default class YoutubeMusic extends StreamingService {
     constructor() {
         super("Youtube Music", "ym");
@@ -29,18 +29,9 @@ export default class YoutubeMusic extends StreamingService {
             throw new Exception(e);
         }
     }
-    async getAudio(trackID) {
+    getAudio(trackID) {
         trackID = this.convertTrackIDToLocal(trackID);
-        try {
-            const stream = YTDL("https://www.youtube.com/watch?v=" + trackID, {
-                filter: "audioonly",
-                highWaterMark: 1 << 16
-            });
-            return stream;
-        }
-        catch (e) {
-            throw new APIResponse(400, `Invalid track ID '${trackID}'`);
-        }
+        return ServiceManager.getInstance().getService("Youtube").getAudio(trackID);
     }
     async getTrack(trackID) {
         trackID = this.convertTrackIDToLocal(trackID);
