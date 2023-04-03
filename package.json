@@ -29,7 +29,7 @@
     "random-word-slugs": "^0.1.6",
     "scdl-core": "^1.1.0",
     "yt-search": "^2.10.4",
-    "ytdl-core": "^4.11.2",
+    "ytdl-core": "^4.11.3",
     "ytsr": "^3.8.0"
   }
 }

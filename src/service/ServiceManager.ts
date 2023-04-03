@@ -3,6 +3,7 @@ import APIResponse from "../response/APIRespose.js";
 import Exception from "../response/Exception.js";
 import StreamingService from "./StreamingService.js";
 import Config from "../Config.js";
+import StreamInfo from "./StreamInfo.js";
 
 export default class ServiceManager {
     private static readonly timeout = Config().track_cache_time;
@@ -10,6 +11,7 @@ export default class ServiceManager {
 
     private services: Map<string, StreamingService> = new Map();
     private trackCache: Map<string, Track> = new Map();
+    private streamCache: Map<string, StreamInfo> = new Map();
 
     private constructor() {
         console.log("Created service manager");
@@ -39,7 +41,7 @@ export default class ServiceManager {
 
     public async getTrackInfo(trackID: Track | string): Promise<Track> {
         if (trackID instanceof Track) trackID = trackID.trackID;
-        if (trackID.split("-").length != 2) throw new APIResponse(400, `'${trackID}' is not a valid track ID`);
+        if (trackID.split("-").length < 2) throw new APIResponse(400, `'${trackID}' is not a valid track ID`);
         const cachedTrack = this.trackCache.get(trackID);
         if (cachedTrack) return cachedTrack;
         const prefix = trackID.split("-")[0];
@@ -53,6 +55,29 @@ export default class ServiceManager {
             return track;
         }
         throw new APIResponse(400, `'${trackID}' is not a valid track ID`);
+    }
+
+    public getAudio(trackID: Track | string): Promise<StreamInfo> {
+        const newTrackID = trackID instanceof Track ? trackID.trackID: trackID;
+        return new Promise(async (resolve, reject) => {
+            const service = this.getServiceFromTrackID(trackID);
+            if (!service) return reject(new APIResponse(400, `'${trackID}' is not a valid track ID`));
+
+            try {
+                const cachedInfo = this.streamCache.get(newTrackID);
+                if (cachedInfo) return resolve(cachedInfo);
+
+                const audio = await service.getAudio(newTrackID);
+                audio.setCallback(() => {
+                    this.streamCache.delete(newTrackID);
+                });
+                this.streamCache.set(newTrackID, audio);
+
+                resolve(audio);
+            } catch (e) {
+                reject(new Exception(e));
+            }
+        });
     }
 
     public getServiceFromTrackID(trackID: Track | string): StreamingService {

@@ -1,3 +1,4 @@
+import { IncomingHttpHeaders } from "http";
 import User from "../authentication/User.js";
 
 export default interface RequestInfo {
@@ -6,5 +7,6 @@ export default interface RequestInfo {
     };
     body: any,
     user: User,
-    endpoint: string
+    endpoint: string,
+    headers: IncomingHttpHeaders
 }

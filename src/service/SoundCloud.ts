@@ -55,17 +55,22 @@ export default class SoundCloud extends StreamingService {
         }
     }
 
-    public async getAudio(trackID: string): Promise<StreamInfo | string> {
+    public async getAudio(trackID: string): Promise<StreamInfo> {
         trackID = this.convertTrackIDToLocal(trackID);
         if (!this.isReady()) throw new Exception("SoundCloud service hasn't finished initialization.");
 
         try {
-            const stream = await SCDL.download("https://api.soundcloud.com/tracks/" + trackID, {
-                highWaterMark: 1 << 16
-            });
+            const trackData = await SCDL.tracks.getTrack("https://api.soundcloud.com/tracks/" + trackID);
+            for (let transcoding of trackData.media.transcodings) {
+                if (transcoding.format.protocol != "progressive") continue;
 
-            return new StreamInfo(stream, "audio/mpeg", 0);
+                const { data } = await Axios.get(transcoding.url + "?client_id=" + clientID);
+
+                return new StreamInfo(data.url, "audio/mpeg", 0);
+            }
+            throw "fail";
         } catch (e) {
+            console.error(e);
             throw new APIResponse(400, `Invalid track ID '${trackID}'`);
         }
     }

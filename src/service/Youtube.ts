@@ -5,7 +5,6 @@ import Track from "../music/Track.js";
 import Exception from "../response/Exception.js";
 import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIRespose.js";
-import Axios from "axios";
 import StreamInfo from "./StreamInfo.js";
 
 export default class Youtube extends StreamingService {
@@ -34,7 +33,7 @@ export default class Youtube extends StreamingService {
         }
     }
 
-    public getAudio(trackID: string): Promise<StreamInfo | string> {
+    public getAudio(trackID: string): Promise<StreamInfo> {
         trackID = this.convertTrackIDToLocal(trackID);
 
         return new Promise((resolve, reject) => {
@@ -44,10 +43,11 @@ export default class Youtube extends StreamingService {
                     quality: "highestaudio"
                 });
                 video.on("info", async (info, format) => {
-                    resolve(format.url);
-                });
-                video.on("error", e => {
-                    reject(new Exception(e));
+                    resolve(new StreamInfo(
+                        format.url,
+                        "audio/webm",
+                        parseInt(format.contentLength)
+                    ));
                 });
             } catch (e) {
                 reject(new APIResponse(400, `Invalid track ID '${trackID}'`));

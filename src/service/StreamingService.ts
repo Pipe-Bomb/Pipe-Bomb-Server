@@ -14,7 +14,7 @@ export default abstract class StreamingService {
     }
 
     public abstract search(query: string, page?: number): Promise<Track[]>;
-    public abstract getAudio(trackID: string): Promise<StreamInfo | string>; // todo: return stream instead of any
+    public abstract getAudio(trackID: string): Promise<StreamInfo>;
     public abstract getTrack(trackID: string): Promise<Track>;
     public abstract getSuggestedTracks(track: Track): Promise<Track[]>;
 

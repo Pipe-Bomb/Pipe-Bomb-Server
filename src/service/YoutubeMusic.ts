@@ -36,7 +36,7 @@ export default class YoutubeMusic extends StreamingService {
         }
     }
 
-    public getAudio(trackID: string): Promise<StreamInfo | string> {
+    public getAudio(trackID: string): Promise<StreamInfo> {
         trackID = this.convertTrackIDToLocal(trackID);
 
         return ServiceManager.getInstance().getService("Youtube").getAudio(trackID);
