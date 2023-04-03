@@ -7,6 +7,7 @@ import APIVersion from "./APIVersion.js";
 import Config from "../../Config.js";
 import Axios from "axios";
 import PartialContentInfo from "../PartialContentInfo.js";
+import StreamInfo from "../../service/StreamInfo.js";
 
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI: RestAPI) {
