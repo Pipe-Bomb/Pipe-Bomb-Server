@@ -3,6 +3,8 @@ import APIResponse from "../../response/APIRespose.js";
 import ServiceManager from "../../service/ServiceManager.js";
 import APIVersion from "./APIVersion.js";
 import Config from "../../Config.js";
+import Axios from "axios";
+import PartialContentInfo from "../PartialContentInfo.js";
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI) {
         super("v1", restAPI);
@@ -106,14 +108,36 @@ export default class APIVersionV1 extends APIVersion {
             return new APIResponse(200, search);
         });
         this.createRoute("get", "/audio/:track_id", false, async (requestInfo) => {
-            const service = ServiceManager.getInstance().getServiceFromTrackID(requestInfo.parameters.track_id);
-            const audio = await service.getAudio(requestInfo.parameters.track_id);
-            if (typeof audio == "string") {
-                return new APIResponse(302, audio);
+            const audio = await ServiceManager.getInstance().getAudio(requestInfo.parameters.track_id);
+            if (!audio.contentLength) {
+                const { headers } = await Axios.head(audio.url);
+                audio.contentLength = parseInt(headers["content-length"]);
             }
-            else {
-                return new APIResponse(200, audio);
+            const size = audio.contentLength;
+            let start = 0;
+            let end = size - 1;
+            if (requestInfo.headers.range) {
+                let split = requestInfo.headers.range.replace(/bytes=/, "").split("-");
+                start = parseInt(split[0], 10);
+                end = split[1] ? parseInt(split[1], 10) : size - 1;
+                if (!isNaN(start) && isNaN(end)) {
+                    end = size - 1;
+                }
+                if (isNaN(start) && !isNaN(end)) {
+                    start = size - end;
+                    end = size - 1;
+                }
+                if (start >= size || end >= size) {
+                    return new APIResponse(416, size);
+                }
             }
+            const { data } = await Axios.get(audio.url, {
+                responseType: "stream",
+                headers: {
+                    Range: `bytes=${start}-${end}`,
+                }
+            });
+            return new APIResponse(206, new PartialContentInfo(data, start, end, size, audio.contentType));
         });
         this.createRoute("get", "/tracks/:track_id", true, async (requestInfo) => {
             const track = await ServiceManager.getInstance().getTrackInfo(requestInfo.parameters.track_id);

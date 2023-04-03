@@ -4,6 +4,7 @@ import Track from "../music/Track.js";
 import Exception from "../response/Exception.js";
 import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIRespose.js";
+import StreamInfo from "./StreamInfo.js";
 export default class Youtube extends StreamingService {
     constructor() {
         super("Youtube", "yt");
@@ -36,10 +37,7 @@ export default class Youtube extends StreamingService {
                     quality: "highestaudio"
                 });
                 video.on("info", async (info, format) => {
-                    resolve(format.url);
-                });
-                video.on("error", e => {
-                    reject(new Exception(e));
+                    resolve(new StreamInfo(format.url, "audio/webm", parseInt(format.contentLength)));
                 });
             }
             catch (e) {

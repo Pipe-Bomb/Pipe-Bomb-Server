@@ -4,7 +4,7 @@ import UserCache from "../authentication/UserCache.js";
 import APIResponse from "../response/APIRespose.js";
 import Exception from "../response/Exception.js";
 import Config from "../Config.js";
-import StreamInfo from "../service/StreamInfo.js";
+import PartialContentInfo from "./PartialContentInfo.js";
 export default class RestAPI {
     constructor(port) {
         this.express = Express();
@@ -49,7 +49,8 @@ export default class RestAPI {
                     parameters: req.params,
                     body: req.body,
                     user,
-                    endpoint: req.url
+                    endpoint: req.url,
+                    headers: req.headers
                 };
                 callbackResponse = await callback(requestInfo);
             }
@@ -75,18 +76,36 @@ export default class RestAPI {
                 res.redirect(callbackResponse.statusCode, callbackResponse.response);
                 return;
             }
+            if (callbackResponse.statusCode == 416) {
+                res.writeHead(416, {
+                    "Content-Range": `bytes */${callbackResponse.response}`
+                });
+                res.end();
+                return;
+            }
+            if (callbackResponse.response instanceof PartialContentInfo) {
+                const info = callbackResponse.response;
+                res.writeHead(206, {
+                    "Content-Range": `bytes ${info.start}-${info.end}/${info.size}`,
+                    "Accept-Ranges": "bytes",
+                    "Content-Length": info.end - info.start + 1,
+                    "Content-Type": info.contentType
+                });
+                info.stream.pipe(res);
+                return;
+            }
             res.status(callbackResponse.statusCode);
-            if (callbackResponse.response instanceof StreamInfo) {
-                res.contentType(callbackResponse.response.contentType);
-                if (callbackResponse.response.contentLength)
-                    res.set({
-                        "Content-Length": callbackResponse.response.contentLength
-                    });
-                callbackResponse.response.stream.pipe(res);
-            }
-            else {
-                res.send(callbackResponse);
-            }
+            // if (callbackResponse.response instanceof StreamInfo) {
+            //     res.contentType(callbackResponse.response.contentType);
+            //     if (callbackResponse.response.contentLength) res.set({
+            //         "Content-Length": callbackResponse.response.contentLength,
+            //         "Accept-Ranges": "bytes"
+            //     });
+            //     callbackResponse.response.stream.pipe(res);
+            // } else {
+            //     res.send(callbackResponse);
+            // }
+            res.send(callbackResponse);
         });
     }
 }

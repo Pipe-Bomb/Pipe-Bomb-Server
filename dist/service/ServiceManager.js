@@ -6,6 +6,7 @@ class ServiceManager {
     constructor() {
         this.services = new Map();
         this.trackCache = new Map();
+        this.streamCache = new Map();
         console.log("Created service manager");
     }
     static getInstance() {
@@ -33,7 +34,7 @@ class ServiceManager {
     async getTrackInfo(trackID) {
         if (trackID instanceof Track)
             trackID = trackID.trackID;
-        if (trackID.split("-").length != 2)
+        if (trackID.split("-").length < 2)
             throw new APIResponse(400, `'${trackID}' is not a valid track ID`);
         const cachedTrack = this.trackCache.get(trackID);
         if (cachedTrack)
@@ -50,6 +51,28 @@ class ServiceManager {
             return track;
         }
         throw new APIResponse(400, `'${trackID}' is not a valid track ID`);
+    }
+    getAudio(trackID) {
+        const newTrackID = trackID instanceof Track ? trackID.trackID : trackID;
+        return new Promise(async (resolve, reject) => {
+            const service = this.getServiceFromTrackID(trackID);
+            if (!service)
+                return reject(new APIResponse(400, `'${trackID}' is not a valid track ID`));
+            try {
+                const cachedInfo = this.streamCache.get(newTrackID);
+                if (cachedInfo)
+                    return resolve(cachedInfo);
+                const audio = await service.getAudio(newTrackID);
+                audio.setCallback(() => {
+                    this.streamCache.delete(newTrackID);
+                });
+                this.streamCache.set(newTrackID, audio);
+                resolve(audio);
+            }
+            catch (e) {
+                reject(new Exception(e));
+            }
+        });
     }
     getServiceFromTrackID(trackID) {
         if (trackID instanceof Track)
