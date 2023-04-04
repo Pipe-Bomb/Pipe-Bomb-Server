@@ -8,7 +8,7 @@ export default class BeatportChart extends Chart {
     private beatportSlug: string;
 
     public constructor(beatportSlug: string, slug: string, name: string) {
-        super(slug, name);
+        super("Beatport", slug, name);
         this.beatportSlug = beatportSlug;
     }
 

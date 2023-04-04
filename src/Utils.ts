@@ -1,3 +1,6 @@
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+
 export function shuffle<Type>(array: Type[]) {
     const dupe = Array.from(array);
     let currentIndex = dupe.length,  randomIndex;
@@ -25,3 +28,37 @@ export function convertArrayToString(items: string[]) {
   }
   return out;
 }
+
+export function wait(milliseconds: number) {
+    return new Promise(resolve => {
+        setTimeout(resolve, milliseconds);
+    });
+}
+
+export function concatArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
+    // Calculate the total length of all buffers
+    let totalLength = 0;
+    for (const buffer of buffers) {
+        totalLength += buffer.byteLength;
+    }
+  
+    // Create a new buffer with the total length
+    const resultBuffer = new ArrayBuffer(totalLength);
+  
+    // Create a Uint8Array to manipulate the buffer as bytes
+    const resultArray = new Uint8Array(resultBuffer);
+  
+    // Use a DataView to copy the contents of each input buffer into the result buffer
+    let offset = 0;
+    for (const buffer of buffers) {
+        const bufferArray = new Uint8Array(buffer);
+        for (let i = 0; i < buffer.byteLength; i++) {
+            resultArray[offset + i] = bufferArray[i];
+        }
+        offset += buffer.byteLength;
+    }
+  
+    return resultBuffer;
+}
+
+export const DIRNAME = dirname(fileURLToPath(import.meta.url));

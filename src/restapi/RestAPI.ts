@@ -7,9 +7,7 @@ import RequestInfo from "./RequestInfo.js";
 import User from "../authentication/User.js";
 import Config from "../Config.js";
 import { Stream } from "stream";
-import StreamInfo from "../service/StreamInfo.js";
 import PartialContentInfo from "./PartialContentInfo.js";
-import Axios from "axios";
 
 export default class RestAPI {
     public readonly port: number;
@@ -116,23 +114,23 @@ export default class RestAPI {
                     "Content-Type": info.contentType
                 });
 
-                info.stream.pipe(res);
+                if (info.stream instanceof Buffer) {
+                    const bufferStream = new Stream.PassThrough();
+                    bufferStream.end(info.stream);
+                    bufferStream.pipe(res);
+                } else {
+                    info.stream.pipe(res);
+                }
                 return;
             }
 
             res.status(callbackResponse.statusCode);
 
-            // if (callbackResponse.response instanceof StreamInfo) {
-            //     res.contentType(callbackResponse.response.contentType);
-            //     if (callbackResponse.response.contentLength) res.set({
-            //         "Content-Length": callbackResponse.response.contentLength,
-            //         "Accept-Ranges": "bytes"
-            //     });
-            //     callbackResponse.response.stream.pipe(res);
-            // } else {
-            //     res.send(callbackResponse);
-            // }
-            res.send(callbackResponse);
+            if (callbackResponse.response instanceof Stream) {
+                callbackResponse.response.pipe(res);
+            } else {
+                res.send(callbackResponse);
+            }
         });
     }
 }

@@ -44,6 +44,10 @@ export default class ServiceManager {
         return Array.from(this.services.keys());
     }
 
+    public getTrackFromCache(trackID: string) {
+        return this.trackCache.get(trackID) || null;
+    }
+
     public async getTrackInfo(trackID: Track | string): Promise<Track> {
         if (trackID instanceof Track) trackID = trackID.trackID;
         if (trackID.split("-").length < 2) throw new APIResponse(400, `'${trackID}' is not a valid track ID`);

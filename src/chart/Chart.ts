@@ -4,10 +4,12 @@ import ChartManager from "./ChartManager.js";
 export default abstract class Chart {
     protected name: string;
     private slug: string;
+    public readonly service: string;
     protected trackList: Track[] = [];
     public lastChecked = 0;
 
-    public constructor(slug: string, name?: string) {
+    public constructor(service: string, slug: string, name?: string) {
+        this.service = service;
         this.slug = slug;
         this.name = name || "Unnamed Chart";
         ChartManager.getInstance().registerChart(this.slug, this);

@@ -14,7 +14,7 @@ export default class StreamInfo {
     }
 
     constructor(
-        public url: string,
+        public content: string | Buffer,
         public contentType: string,
         public contentLength: number
     ) {}
