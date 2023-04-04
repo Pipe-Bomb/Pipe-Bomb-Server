@@ -8,6 +8,7 @@ import Config from "../../Config.js";
 import Axios from "axios";
 import PartialContentInfo from "../PartialContentInfo.js";
 import ChartManager from "../../chart/ChartManager.js";
+import StreamInfo from "../../service/StreamInfo.js";
 
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI: RestAPI) {

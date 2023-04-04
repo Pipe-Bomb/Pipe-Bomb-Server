@@ -63,12 +63,13 @@ export default class ServiceManager {
     }
 
     public getAudio(trackID: Track | string): Promise<StreamInfo> {
-        const newTrackID = trackID instanceof Track ? trackID.trackID: trackID;
         return new Promise(async (resolve, reject) => {
-            const service = this.getServiceFromTrackID(trackID);
-            if (!service) return reject(new APIResponse(400, `'${trackID}' is not a valid track ID`));
+            const newTrackID = trackID instanceof Track ? trackID.trackID : trackID;
+            if (!newTrackID) return reject(new APIResponse(400, `'${trackID}' is not a valid track ID`));
 
             try {
+                const service = this.getServiceFromTrackID(trackID);
+
                 const cachedInfo = this.streamCache.get(newTrackID);
                 if (cachedInfo) return resolve(cachedInfo);
 
@@ -80,6 +81,7 @@ export default class ServiceManager {
 
                 resolve(audio);
             } catch (e) {
+                if (e instanceof APIResponse) return reject(e);
                 reject(new Exception(e));
             }
         });
@@ -87,7 +89,7 @@ export default class ServiceManager {
 
     public getServiceFromTrackID(trackID: Track | string): StreamingService {
         if (trackID instanceof Track) trackID = trackID.trackID;
-        if (trackID.split("-").length < 2) throw new APIResponse(400, `Invalid track ID '${trackID}'`);
+        if (!trackID.includes("-")) throw new APIResponse(400, `Invalid track ID '${trackID}'`);
         const prefix = trackID.split("-")[0];
         for (let service of this.services.values()) {
             if (service.prefix == prefix) return service;
