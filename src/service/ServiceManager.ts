@@ -5,6 +5,11 @@ import StreamingService from "./StreamingService.js";
 import Config from "../Config.js";
 import StreamInfo from "./StreamInfo.js";
 
+export interface ConversionWrapper {
+    query: string,
+    track: Track | null
+}
+
 export default class ServiceManager {
     private static readonly timeout = Config().track_cache_time;
     private static instance: ServiceManager = null;
@@ -90,5 +95,45 @@ export default class ServiceManager {
             if (service.prefix == prefix) return service;
         }
         throw new APIResponse(400, `Invalid track ID '${trackID}'`);
+    }
+
+    public convertNamesToTracks(serviceName: string, ...trackNames: string[]) {
+        return new Promise<ConversionWrapper[]>((resolve, reject) => {
+            const service = this.getService(serviceName);
+            if (!service) return reject(new Exception(`'${serviceName}' is not a valid streaming service!`));
+
+            const totalSize = trackNames.length;
+            let completedSearches = 0;
+            const tracks: ConversionWrapper[] = trackNames.map(track => {
+                return {
+                    query: track,
+                    track: null
+                }
+            });
+
+            function lookup(index: number, trackName: string) {
+                service.search(trackName)
+                .then(results => {
+                    tracks[index].track = results[0] || null;
+                    tracks.push()
+                }).finally(() => {
+                    if (++completedSearches < totalSize) {
+                        const newIndex = totalSize - trackNames.length;
+                        const newName = trackNames.shift();
+                        if (newName) {
+                            lookup(newIndex, newName);
+                        }
+                    } else {
+                        resolve(tracks);
+                    }
+                });
+            }
+
+            for (let i = 0; i < 20; i++) { // 20 concurrent lookup threads
+                const name = trackNames.shift();
+                if (!name) break;
+                lookup(i, name);
+            }
+        });
     }
 }
