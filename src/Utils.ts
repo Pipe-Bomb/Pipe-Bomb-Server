@@ -10,3 +10,18 @@ export function shuffle<Type>(array: Type[]) {
   
     return dupe;
 }
+
+export function convertArrayToString(items: string[]) {
+  let out = "";
+  for (let i = 0; i < items.length; i++) {
+      if (i > 0) {
+          if (i == items.length - 2) {
+              out += " & ";
+          } else {
+              out += ", ";
+          }
+      }
+      out += items[i];
+  }
+  return out;
+}
