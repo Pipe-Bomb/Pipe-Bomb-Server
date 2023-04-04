@@ -5,6 +5,7 @@ import APIVersion from "./APIVersion.js";
 import Config from "../../Config.js";
 import Axios from "axios";
 import PartialContentInfo from "../PartialContentInfo.js";
+import ChartManager from "../../chart/ChartManager.js";
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI) {
         super("v1", restAPI);
@@ -148,6 +149,27 @@ export default class APIVersionV1 extends APIVersion {
             const track = await serviceManager.getTrackInfo(requestInfo.parameters.track_id);
             const suggestions = await serviceManager.getServiceFromTrackID(track.trackID).getSuggestedTracks(track);
             return new APIResponse(200, suggestions);
+        });
+        this.createRoute("get", "/charts/:chart_id", false, async (requestInfo) => {
+            const chartManager = ChartManager.getInstance();
+            const chart = chartManager.getChart(requestInfo.parameters.chart_id);
+            return new APIResponse(200, {
+                slug: chart.getSlug(),
+                name: chart.getName(),
+                trackList: await chart.getTracks()
+            });
+        });
+        this.createRoute("get", "/charts", false, async (requestInfo) => {
+            const chartManager = ChartManager.getInstance();
+            const charts = chartManager.getChartList();
+            const out = charts.map(chartName => {
+                const chart = chartManager.getChart(chartName);
+                return {
+                    slug: chart.getSlug(),
+                    name: chart.getName()
+                };
+            });
+            return new APIResponse(200, out);
         });
     }
     async getCollectionFromRequestInfo(requestInfo) {

@@ -88,6 +88,45 @@ class ServiceManager {
         }
         throw new APIResponse(400, `Invalid track ID '${trackID}'`);
     }
+    convertNamesToTracks(serviceName, ...trackNames) {
+        return new Promise((resolve, reject) => {
+            const service = this.getService(serviceName);
+            if (!service)
+                return reject(new Exception(`'${serviceName}' is not a valid streaming service!`));
+            const totalSize = trackNames.length;
+            let completedSearches = 0;
+            const tracks = trackNames.map(track => {
+                return {
+                    query: track,
+                    track: null
+                };
+            });
+            function lookup(index, trackName) {
+                service.search(trackName)
+                    .then(results => {
+                    tracks[index].track = results[0] || null;
+                    tracks.push();
+                }).finally(() => {
+                    if (++completedSearches < totalSize) {
+                        const newIndex = totalSize - trackNames.length;
+                        const newName = trackNames.shift();
+                        if (newName) {
+                            lookup(newIndex, newName);
+                        }
+                    }
+                    else {
+                        resolve(tracks);
+                    }
+                });
+            }
+            for (let i = 0; i < 20; i++) { // 20 concurrent lookup threads
+                const name = trackNames.shift();
+                if (!name)
+                    break;
+                lookup(i, name);
+            }
+        });
+    }
 }
 ServiceManager.timeout = Config().track_cache_time;
 ServiceManager.instance = null;
