@@ -4,6 +4,7 @@ import UserCache from "../authentication/UserCache.js";
 import APIResponse from "../response/APIRespose.js";
 import Exception from "../response/Exception.js";
 import Config from "../Config.js";
+import { Stream } from "stream";
 import PartialContentInfo from "./PartialContentInfo.js";
 export default class RestAPI {
     constructor(port) {
@@ -91,21 +92,23 @@ export default class RestAPI {
                     "Content-Length": info.end - info.start + 1,
                     "Content-Type": info.contentType
                 });
-                info.stream.pipe(res);
+                if (info.stream instanceof Buffer) {
+                    const bufferStream = new Stream.PassThrough();
+                    bufferStream.end(info.stream);
+                    bufferStream.pipe(res);
+                }
+                else {
+                    info.stream.pipe(res);
+                }
                 return;
             }
             res.status(callbackResponse.statusCode);
-            // if (callbackResponse.response instanceof StreamInfo) {
-            //     res.contentType(callbackResponse.response.contentType);
-            //     if (callbackResponse.response.contentLength) res.set({
-            //         "Content-Length": callbackResponse.response.contentLength,
-            //         "Accept-Ranges": "bytes"
-            //     });
-            //     callbackResponse.response.stream.pipe(res);
-            // } else {
-            //     res.send(callbackResponse);
-            // }
-            res.send(callbackResponse);
+            if (callbackResponse.response instanceof Stream) {
+                callbackResponse.response.pipe(res);
+            }
+            else {
+                res.send(callbackResponse);
+            }
         });
     }
 }

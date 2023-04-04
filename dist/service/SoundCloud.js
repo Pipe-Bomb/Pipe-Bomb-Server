@@ -5,6 +5,7 @@ import Track from "../music/Track.js";
 import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIRespose.js";
 import StreamInfo from "./StreamInfo.js";
+import { concatArrayBuffers, wait } from "../Utils.js";
 let isConnected = false;
 let clientID = null;
 const BASE_URL = "https://api-v2.soundcloud.com";
@@ -16,6 +17,16 @@ const BASE_URL = "https://api-v2.soundcloud.com";
     const anyReference = SCDL;
     clientID = anyReference.clientId;
 })();
+export async function getClientID() {
+    return new Promise(async (resolve) => {
+        if (clientID)
+            return resolve(clientID);
+        while (!clientID) {
+            await wait(100);
+        }
+        resolve(clientID);
+    });
+}
 export default class SoundCloud extends StreamingService {
     constructor() {
         super("SoundCloud", "sc");
@@ -52,37 +63,68 @@ export default class SoundCloud extends StreamingService {
     }
     async getAudio(trackID) {
         trackID = this.convertTrackIDToLocal(trackID);
-        if (!this.isReady())
-            throw new Exception("SoundCloud service hasn't finished initialization.");
-        try {
-            const trackData = await SCDL.tracks.getTrack("https://api.soundcloud.com/tracks/" + trackID);
-            for (let transcoding of trackData.media.transcodings) {
-                if (transcoding.format.protocol != "progressive")
-                    continue;
-                const { data } = await Axios.get(transcoding.url + "?client_id=" + clientID);
-                return new StreamInfo(data.url, "audio/mpeg", 0);
+        return new Promise(async (resolve, reject) => {
+            if (!this.isReady())
+                return reject(new Exception("SoundCloud service hasn't finished initialization."));
+            try {
+                const trackData = await SCDL.tracks.getTrack("https://api.soundcloud.com/tracks/" + trackID);
+                for (let transcoding of trackData.media.transcodings) {
+                    if (transcoding.format.protocol != "progressive")
+                        continue;
+                    const { data } = await Axios.get(transcoding.url + "?client_id=" + clientID);
+                    return resolve(new StreamInfo(data.url, "audio/mpeg", 0));
+                }
+                const initialUrl = trackData.media.transcodings[0].url + "?client_id=" + clientID;
+                const { data: urlQuery } = await Axios.get(initialUrl);
+                const { data: playlist } = await Axios.get(urlQuery.url);
+                const urls = [];
+                playlist.split("\n").forEach(line => {
+                    if (line.startsWith("https://"))
+                        urls.push(line);
+                });
+                let completedQueries = 0;
+                const chunks = Array(urls.length);
+                async function runQuery(index, url) {
+                    try {
+                        const { data } = await Axios.get(url, {
+                            responseType: "arraybuffer"
+                        });
+                        chunks[index] = data;
+                    }
+                    finally {
+                        if (++completedQueries >= urls.length) {
+                            const audio = concatArrayBuffers(chunks);
+                            resolve(new StreamInfo(Buffer.from(audio), "audio/mpeg", audio.byteLength));
+                        }
+                    }
+                }
+                for (let i = 0; i < urls.length; i++) {
+                    runQuery(i, urls[i]);
+                }
             }
-            throw "fail";
-        }
-        catch (e) {
-            console.error(e);
-            throw new APIResponse(400, `Invalid track ID '${trackID}'`);
-        }
+            catch (e) {
+                // console.error(e);
+                reject(new APIResponse(400, `Invalid track ID '${trackID}'`));
+            }
+        });
     }
     async getTrack(trackID) {
         if (!this.isReady())
             throw new Exception("SoundCloud service hasn't finished initialization.");
         try {
             const trackInfo = (await SCDL.tracks.getTracksByIds([parseInt(trackID)]))[0];
-            return new Track("sc-" + trackInfo.id, {
-                title: trackInfo.title,
-                artists: [trackInfo.user.username],
-                image: trackInfo?.artwork_url || null
-            });
+            return this.convertJsonToTrack(trackInfo);
         }
         catch (e) {
             throw new Exception(e);
         }
+    }
+    convertJsonToTrack(trackInfo) {
+        return new Track("sc-" + trackInfo.id, {
+            title: trackInfo.title,
+            artists: [trackInfo.user.username],
+            image: trackInfo?.artwork_url || null
+        });
     }
     isReady() {
         return isConnected;

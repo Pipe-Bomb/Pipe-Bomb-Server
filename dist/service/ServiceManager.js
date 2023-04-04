@@ -31,6 +31,9 @@ class ServiceManager {
     getServiceList() {
         return Array.from(this.services.keys());
     }
+    getTrackFromCache(trackID) {
+        return this.trackCache.get(trackID) || null;
+    }
     async getTrackInfo(trackID) {
         if (trackID instanceof Track)
             trackID = trackID.trackID;

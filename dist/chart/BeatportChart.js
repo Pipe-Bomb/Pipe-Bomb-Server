@@ -4,7 +4,7 @@ import { convertArrayToString } from "../Utils.js";
 import ServiceManager from "../service/ServiceManager.js";
 export default class BeatportChart extends Chart {
     constructor(beatportSlug, slug, name) {
-        super(slug, name);
+        super("Beatport", slug, name);
         this.beatportSlug = beatportSlug;
     }
     update() {

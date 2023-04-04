@@ -1,8 +1,9 @@
 import ChartManager from "./ChartManager.js";
 export default class Chart {
-    constructor(slug, name) {
+    constructor(service, slug, name) {
         this.trackList = [];
         this.lastChecked = 0;
+        this.service = service;
         this.slug = slug;
         this.name = name || "Unnamed Chart";
         ChartManager.getInstance().registerChart(this.slug, this);

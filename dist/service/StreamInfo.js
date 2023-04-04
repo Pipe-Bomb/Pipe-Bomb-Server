@@ -8,8 +8,8 @@ export default class StreamInfo {
         this.callback = callback;
         this.resetTimer();
     }
-    constructor(url, contentType, contentLength) {
-        this.url = url;
+    constructor(content, contentType, contentLength) {
+        this.content = content;
         this.contentType = contentType;
         this.contentLength = contentLength;
     }
