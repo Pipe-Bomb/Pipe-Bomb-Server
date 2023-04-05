@@ -11,6 +11,7 @@ import ChartManager from "../../chart/ChartManager.js";
 import FS from "fs";
 import Path from "path";
 import { DIRNAME, stripNonAlphanumeric } from "../../Utils.js";
+import StreamInfo from "../../service/StreamInfo.js";
 
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI: RestAPI) {
@@ -139,7 +140,16 @@ export default class APIVersionV1 extends APIVersion {
         
 
         this.createRoute("get", "/audio/:track_id", false, async requestInfo => { // get audio for track
-            const audio = await ServiceManager.getInstance().getAudio(requestInfo.parameters.track_id);
+            console.log("getting audio!");
+            let audio: StreamInfo;
+            try {
+                audio = await ServiceManager.getInstance().getAudio(requestInfo.parameters.track_id);
+            } catch (e) {
+                console.log("caught error!");
+                throw "fail";
+            }
+            
+            console.log("got audio!");
 
             if (audio.content instanceof Buffer) {
                 return new APIResponse(200, new PartialContentInfo(audio.content, 0, audio.contentLength - 1, audio.contentLength, audio.contentType));
