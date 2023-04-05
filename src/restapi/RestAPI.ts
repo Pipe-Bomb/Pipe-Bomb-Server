@@ -78,7 +78,7 @@ export default class RestAPI {
             }
 
             if (callbackResponse instanceof Exception) {
-                console.error(`Internal server error!`, callbackResponse.reason);
+                console.error(`Internal server error!\nroute:`, route, "\nurl:", req.url, "\nparameters:", req.params, "\nbody:", req.body, callbackResponse.reason);
             }
 
             if (!callbackResponse) {
