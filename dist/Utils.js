@@ -48,7 +48,9 @@ export function concatArrayBuffers(buffers) {
     return resultBuffer;
 }
 export const DIRNAME = dirname(fileURLToPath(import.meta.url));
-export function stripNonAlphanumeric(input) {
+export function stripNonAlphanumeric(input, allowSpaces) {
+    if (allowSpaces)
+        return input.replace(/[^0-9a-zA-Z ]/g, "");
     return input.replace(/[^0-9a-zA-Z]/g, "");
 }
 //# sourceMappingURL=Utils.js.map
