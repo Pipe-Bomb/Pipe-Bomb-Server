@@ -59,6 +59,7 @@ export function concatArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
 
 export const DIRNAME = dirname(fileURLToPath(import.meta.url));
 
-export function stripNonAlphanumeric(input: string) {
+export function stripNonAlphanumeric(input: string, allowSpaces: boolean) {
+    if (allowSpaces) return input.replace(/[^0-9a-zA-Z ]/g, "");
     return input.replace(/[^0-9a-zA-Z]/g, "");
 }

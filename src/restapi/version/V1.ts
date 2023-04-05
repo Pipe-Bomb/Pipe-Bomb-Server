@@ -235,7 +235,7 @@ export default class APIVersionV1 extends APIVersion {
             return new Promise(resolve => {
                 const serviceName = requestInfo.parameters.service_id;
 
-                const filePath = Path.join(DIRNAME, "..", "assets", "services", `${stripNonAlphanumeric(serviceName)}.png`);
+                const filePath = Path.join(DIRNAME, "..", "assets", "services", `${stripNonAlphanumeric(serviceName, true)}.png`);
 
                 if (!FS.existsSync(filePath)) {
                     return resolve(new APIResponse(404, `'${serviceName}' is not a valid service!`));
