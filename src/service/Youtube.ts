@@ -49,7 +49,10 @@ export default class Youtube extends StreamingService {
                         parseInt(format.contentLength)
                     ));
                 });
-            } catch (e) {
+                video.on("error", e => {
+                    reject(new APIResponse(503, `Refused by service`));
+                });
+            } catch {
                 reject(new APIResponse(400, `Invalid track ID '${trackID}'`));
             }
         });

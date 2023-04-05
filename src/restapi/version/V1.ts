@@ -140,28 +140,16 @@ export default class APIVersionV1 extends APIVersion {
         
 
         this.createRoute("get", "/audio/:track_id", false, async requestInfo => { // get audio for track
-            console.log("getting audio!");
-            let audio: StreamInfo;
-            try {
-                audio = await ServiceManager.getInstance().getAudio(requestInfo.parameters.track_id);
-            } catch (e) {
-                console.log("caught error!");
-                throw "fail";
-            }
-            
-            console.log("got audio!");
+            const audio = await ServiceManager.getInstance().getAudio(requestInfo.parameters.track_id);
 
             if (audio.content instanceof Buffer) {
                 return new APIResponse(200, new PartialContentInfo(audio.content, 0, audio.contentLength - 1, audio.contentLength, audio.contentType));
             }
 
             if (!audio.contentLength) {
-                console.log("checking audio content-length");
-                const start = Date.now();
                 const { headers } = await Axios.head(audio.content, {
                     timeout: 3000
                 });
-                console.log("content-length check took", Math.floor((Date.now() - start) / 1000), "seconds");
                 audio.contentLength = parseInt(headers["content-length"]);
             }
 
@@ -188,18 +176,22 @@ export default class APIVersionV1 extends APIVersion {
                 }
             }
 
-            console.log("getting audio");
-            const startTime = Date.now();
-            const { data } = await Axios.get(audio.content, {
-                responseType: "stream",
-                headers: {
-                  Range: `bytes=${start}-${end}`,
-                },
-                timeout: 5000
-            });
-            console.log("audio get took", Math.floor((Date.now() - startTime) / 1000), "seconds");
+            try {
+                const { data } = await Axios.get(audio.content, {
+                    responseType: "stream",
+                    headers: {
+                      Range: `bytes=${start}-${end}`,
+                    },
+                    timeout: 5000
+                });
+                return new APIResponse(206, new PartialContentInfo(data, start, end, size, audio.contentType));
+            } catch (e) {
+                console.error("failed to download audio!", requestInfo.parameters.track_id, audio.content); // TODO: try again?? idfk
+                return new APIResponse(503, "Refused by service");
+            }
+        
 
-            return new APIResponse(206, new PartialContentInfo(data, start, end, size, audio.contentType));
+            
         });
 
         this.createRoute("get", "/tracks/:track_id", true, async requestInfo => {
