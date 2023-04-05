@@ -7,7 +7,8 @@
   "scripts": {
     "test": "cross-env YTDL_NO_UPDATE=1 node --trace-warnings dist/index.js",
     "watch": "npx tsc -w",
-    "build": "npx tsc"
+    "build": "npx tsc",
+    "start": "npm run build && npm run test"
   },
   "keywords": [],
   "author": "eyezah",
