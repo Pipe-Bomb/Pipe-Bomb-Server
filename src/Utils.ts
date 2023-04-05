@@ -36,19 +36,15 @@ export function wait(milliseconds: number) {
 }
 
 export function concatArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
-    // Calculate the total length of all buffers
     let totalLength = 0;
     for (const buffer of buffers) {
         totalLength += buffer.byteLength;
     }
   
-    // Create a new buffer with the total length
     const resultBuffer = new ArrayBuffer(totalLength);
   
-    // Create a Uint8Array to manipulate the buffer as bytes
     const resultArray = new Uint8Array(resultBuffer);
   
-    // Use a DataView to copy the contents of each input buffer into the result buffer
     let offset = 0;
     for (const buffer of buffers) {
         const bufferArray = new Uint8Array(buffer);
@@ -62,3 +58,7 @@ export function concatArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
 }
 
 export const DIRNAME = dirname(fileURLToPath(import.meta.url));
+
+export function stripNonAlphanumeric(input: string) {
+    return input.replace(/[^0-9a-zA-Z]/g, "");
+}

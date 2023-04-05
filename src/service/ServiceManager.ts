@@ -56,7 +56,9 @@ export default class ServiceManager {
         const prefix = trackID.split("-")[0];
         for (let service of this.services.values()) {
             if (service.prefix != prefix) continue;
-            const track = await service.getTrack(service.convertTrackIDToLocal(trackID));
+            let track: Track;
+            track = await service.getTrack(service.convertTrackIDToLocal(trackID));
+            
             this.trackCache.set(track.trackID, track);
             setTimeout(() => {
                 this.trackCache.delete(track.trackID);

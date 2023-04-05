@@ -37,7 +37,7 @@ export default class SoundCloud extends StreamingService {
     }
 
     public async search(query: string, page?: number): Promise<Track[]> {
-        if (!this.isReady()) return [];
+        await getClientID();
 
         try {
             const results = await SCDL.search({
@@ -70,7 +70,7 @@ export default class SoundCloud extends StreamingService {
         trackID = this.convertTrackIDToLocal(trackID);
 
         return new Promise(async (resolve, reject) => {
-            if (!this.isReady()) return reject(new Exception("SoundCloud service hasn't finished initialization."));
+            await getClientID();
 
             try {
                 const trackData = await SCDL.tracks.getTrack("https://api.soundcloud.com/tracks/" + trackID);
@@ -119,7 +119,7 @@ export default class SoundCloud extends StreamingService {
     }
 
     public async getTrack(trackID: string): Promise<Track> {
-        if (!this.isReady()) throw new Exception("SoundCloud service hasn't finished initialization.");
+        await getClientID();
         try {
             const trackInfo = (await SCDL.tracks.getTracksByIds([parseInt(trackID)]))[0];
             return this.convertJsonToTrack(trackInfo);
@@ -135,10 +135,7 @@ export default class SoundCloud extends StreamingService {
             image: trackInfo?.artwork_url || null
         });
     }
-    
-    private isReady(): boolean {
-        return isConnected;
-    }
+
 
     public async getSuggestedTracks(track: Track): Promise<Track[]> {
         const trackID = this.convertTrackIDToLocal(track.trackID);

@@ -10,7 +10,7 @@ import PartialContentInfo from "../PartialContentInfo.js";
 import ChartManager from "../../chart/ChartManager.js";
 import FS from "fs";
 import Path from "path";
-import { DIRNAME } from "../../Utils.js";
+import { DIRNAME, stripNonAlphanumeric } from "../../Utils.js";
 
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI: RestAPI) {
@@ -146,7 +146,12 @@ export default class APIVersionV1 extends APIVersion {
             }
 
             if (!audio.contentLength) {
-                const { headers } = await Axios.head(audio.content);
+                console.log("checking audio content-length");
+                const start = Date.now();
+                const { headers } = await Axios.head(audio.content, {
+                    timeout: 3000
+                });
+                console.log("content-length check took", Math.floor((Date.now() - start) / 1000), "seconds");
                 audio.contentLength = parseInt(headers["content-length"]);
             }
 
@@ -173,12 +178,16 @@ export default class APIVersionV1 extends APIVersion {
                 }
             }
 
+            console.log("getting audio");
+            const startTime = Date.now();
             const { data } = await Axios.get(audio.content, {
                 responseType: "stream",
                 headers: {
                   Range: `bytes=${start}-${end}`,
-                }
+                },
+                timeout: 5000
             });
+            console.log("audio get took", Math.floor((Date.now() - startTime) / 1000), "seconds");
 
             return new APIResponse(206, new PartialContentInfo(data, start, end, size, audio.contentType));
         });
@@ -196,7 +205,7 @@ export default class APIVersionV1 extends APIVersion {
         });
 
 
-        this.createRoute("get", "/charts/:chart_id", false, async requestInfo => {
+        this.createRoute("get", "/charts/:chart_id", true, async requestInfo => {
             const chartManager = ChartManager.getInstance();
             const chart = chartManager.getChart(requestInfo.parameters.chart_id);
             return new APIResponse(200, {
@@ -207,7 +216,7 @@ export default class APIVersionV1 extends APIVersion {
             });
         });
 
-        this.createRoute("get", "/charts", false, async requestInfo => {
+        this.createRoute("get", "/charts", true, async requestInfo => {
             const chartManager = ChartManager.getInstance();
             const charts = chartManager.getChartList();
             const out = charts.map(chartName => {
@@ -226,8 +235,7 @@ export default class APIVersionV1 extends APIVersion {
             return new Promise(resolve => {
                 const serviceName = requestInfo.parameters.service_id;
 
-                const filePath = Path.join(DIRNAME, "..", "assets", "services", `${serviceName}.png`);
-                console.log(filePath);
+                const filePath = Path.join(DIRNAME, "..", "assets", "services", `${stripNonAlphanumeric(serviceName)}.png`);
 
                 if (!FS.existsSync(filePath)) {
                     return resolve(new APIResponse(404, `'${serviceName}' is not a valid service!`));

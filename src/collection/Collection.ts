@@ -31,22 +31,41 @@ export default class Collection {
         this.resetCacheTimeout();
     }
 
-    public async loadPage(page: number): Promise<this> {
+    public loadPage(page: number): Promise<void> {
         const pageSize = 10;
 
-        for (let i = page * pageSize; i < (page + 1) * pageSize; i++) {
-            let track = this.trackList[i];
-            if (!track) break;
-            if (!track.isUnknown()) continue;
-            try {
-                const newTrack = await ServiceManager.getInstance().getTrackInfo(track.trackID);
-                this.trackList[i] = newTrack;
-            } catch (e) {
-                console.log(`Failed to get track info for item '${i}' in playlist: '${track.trackID}'`, e);
-            }
-        }
+        return new Promise<void>(async (resolve, reject) => {
+            let completedChecks = 0;
 
-        return this;
+            async function loadTrack(collection: Collection, track: Track) {
+                try {
+                    const newTrack = await ServiceManager.getInstance().getTrackInfo(track.trackID);
+
+                    for (let i = 0; i < collection.trackList.length; i++) {
+                        if (collection.trackList[i].trackID == newTrack.trackID) {
+                            collection.trackList[i] = newTrack;
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.log(`Failed to get track info for item in playlist '${collection.collectionID}': '${track.trackID}'`, e);
+                } finally {
+                    if (--completedChecks <= 0) {
+                        resolve();
+                    }
+                }
+            }
+
+
+            for (let i = page * pageSize; i < (page + 1) * pageSize; i++) {
+                let track = this.trackList[i];
+                if (!track) break;
+                if (!track.isUnknown()) continue;
+                completedChecks++;
+                loadTrack(this, track);
+            }
+            if (!completedChecks) resolve();
+        });
     }
 
     public async addTrack(track: Track | string) {
