@@ -112,7 +112,16 @@ export default class APIVersionV1 extends APIVersion {
             return new APIResponse(200, search);
         });
         this.createRoute("get", "/audio/:track_id", false, async (requestInfo) => {
-            const audio = await ServiceManager.getInstance().getAudio(requestInfo.parameters.track_id);
+            console.log("getting audio!");
+            let audio;
+            try {
+                audio = await ServiceManager.getInstance().getAudio(requestInfo.parameters.track_id);
+            }
+            catch (e) {
+                console.log("caught error!");
+                throw "fail";
+            }
+            console.log("got audio!");
             if (audio.content instanceof Buffer) {
                 return new APIResponse(200, new PartialContentInfo(audio.content, 0, audio.contentLength - 1, audio.contentLength, audio.contentType));
             }
