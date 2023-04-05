@@ -39,8 +39,11 @@ export default class Youtube extends StreamingService {
                 video.on("info", async (info, format) => {
                     resolve(new StreamInfo(format.url, "audio/webm", parseInt(format.contentLength)));
                 });
+                video.on("error", e => {
+                    reject(new APIResponse(503, `Refused by service`));
+                });
             }
-            catch (e) {
+            catch {
                 reject(new APIResponse(400, `Invalid track ID '${trackID}'`));
             }
         });
