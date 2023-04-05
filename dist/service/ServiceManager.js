@@ -46,7 +46,8 @@ class ServiceManager {
         for (let service of this.services.values()) {
             if (service.prefix != prefix)
                 continue;
-            const track = await service.getTrack(service.convertTrackIDToLocal(trackID));
+            let track;
+            track = await service.getTrack(service.convertTrackIDToLocal(trackID));
             this.trackCache.set(track.trackID, track);
             setTimeout(() => {
                 this.trackCache.delete(track.trackID);

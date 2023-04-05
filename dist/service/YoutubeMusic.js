@@ -1,5 +1,4 @@
 import * as YTM from "node-youtube-music";
-import YTDL from "ytdl-core";
 import Exception from "../response/Exception.js";
 import Track from "../music/Track.js";
 import StreamingService from "./StreamingService.js";
@@ -35,21 +34,7 @@ export default class YoutubeMusic extends StreamingService {
     }
     async getTrack(trackID) {
         trackID = this.convertTrackIDToLocal(trackID);
-        try {
-            const data = await YTDL.getInfo("https://www.youtube.com/watch?v=" + trackID);
-            let thumbnail = data.thumbnail_url || null;
-            if (!thumbnail && data.videoDetails.thumbnails.length) {
-                thumbnail = data.videoDetails.thumbnails[0].url;
-            }
-            return new Track(`ym-${trackID}`, {
-                title: data.videoDetails.title,
-                artists: [data.videoDetails.author.name],
-                image: thumbnail
-            });
-        }
-        catch (e) {
-            throw new Exception(e);
-        }
+        return ServiceManager.getInstance().getService("Youtube").getTrack(trackID);
     }
     async getSuggestedTracks(track) {
         const trackID = this.convertTrackIDToLocal(track.trackID);

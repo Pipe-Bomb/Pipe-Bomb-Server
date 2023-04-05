@@ -47,8 +47,9 @@ export default class Youtube extends StreamingService {
     }
     async getTrack(trackID) {
         trackID = this.convertTrackIDToLocal(trackID);
+        const url = "https://www.youtube.com/watch?v=" + trackID;
         try {
-            const data = await YTDL.getInfo("https://www.youtube.com/watch?v=" + trackID);
+            const data = await YTDL.getInfo(url);
             let thumbnail = data.thumbnail_url || null;
             if (!thumbnail && data.videoDetails.thumbnails.length) {
                 thumbnail = data.videoDetails.thumbnails[0].url;
@@ -60,6 +61,7 @@ export default class Youtube extends StreamingService {
             });
         }
         catch (e) {
+            console.log("YTDL ERROR", url);
             throw new Exception(e);
         }
     }
