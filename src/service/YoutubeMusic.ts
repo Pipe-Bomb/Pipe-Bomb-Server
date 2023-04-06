@@ -45,7 +45,23 @@ export default class YoutubeMusic extends StreamingService {
     public async getTrack(trackID: string): Promise<Track> {
         trackID = this.convertTrackIDToLocal(trackID);
 
-        return ServiceManager.getInstance().getService("Youtube").getTrack(trackID);
+        const url = "https://www.youtube.com/watch?v=" + trackID;
+        try {
+            const data = await YTDL.getInfo(url);
+
+            let thumbnail = data.thumbnail_url || null;
+            if (!thumbnail && data.videoDetails.thumbnails.length) {
+                thumbnail = data.videoDetails.thumbnails[0].url;
+            }
+            return new Track(`ym-${trackID}`, {
+                title: data.videoDetails.title,
+                artists: [data.videoDetails.author.name],
+                image: thumbnail
+            });
+        } catch (e) {
+            console.log("YTDL ERROR", url);
+            throw new Exception(e);
+        }
     }
 
     public async getSuggestedTracks(track: Track): Promise<Track[]> {

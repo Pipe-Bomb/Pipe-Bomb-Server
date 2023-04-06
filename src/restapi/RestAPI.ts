@@ -114,13 +114,18 @@ export default class RestAPI {
                     "Content-Type": info.contentType
                 });
 
-                if (info.stream instanceof Buffer) {
-                    const bufferStream = new Stream.PassThrough();
-                    bufferStream.end(info.stream);
-                    bufferStream.pipe(res);
+                if (req.method != "HEAD") {
+                    if (info.stream instanceof Buffer) {
+                        const bufferStream = new Stream.PassThrough();
+                        bufferStream.end(info.stream);
+                        bufferStream.pipe(res);
+                    } else {
+                        info.stream.pipe(res);
+                    }
                 } else {
-                    info.stream.pipe(res);
+                    res.end();
                 }
+                
                 return;
             }
 
