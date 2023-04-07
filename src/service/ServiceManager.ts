@@ -4,6 +4,8 @@ import Exception from "../response/Exception.js";
 import StreamingService from "./StreamingService.js";
 import Config from "../Config.js";
 import StreamInfo from "./StreamInfo.js";
+import PartialContentInfo from "../restapi/PartialContentInfo.js";
+import Axios from "axios";
 
 export interface ConversionWrapper {
     query: string,
@@ -141,5 +143,81 @@ export default class ServiceManager {
                 lookup(i, name);
             }
         });
+    }
+
+    private async getAudioInfoOnce(trackID: string, range?: string) {
+        const audio = await ServiceManager.getInstance().getAudio(trackID);
+
+        if (audio.content instanceof Buffer) {
+            return new APIResponse(200, new PartialContentInfo(audio.content, 0, audio.contentLength - 1, audio.contentLength, audio.contentType));
+        }
+
+        if (!audio.contentLength && typeof audio.content == "string") {
+            const { headers } = await Axios.head(audio.content, {
+                timeout: 3000
+            });
+            audio.contentLength = parseInt(headers["content-length"]);
+        }
+
+        const size = audio.contentLength;
+
+        let start = 0;
+        let end = size - 1;
+
+        if (range) {
+            let split = range.replace(/bytes=/, "").split("-");
+            start = parseInt(split[0], 10);
+            end = split[1] ? parseInt(split[1], 10) : size - 1;
+
+            if (!isNaN(start) && isNaN(end)) {
+                end = size - 1;
+            }
+            if (isNaN(start) && !isNaN(end)) {
+                start = size - end;
+                end = size - 1;
+            }
+
+            if (start >= size || end >= size) {
+                return new APIResponse(416, size);
+            }
+        }
+
+        try {
+            const { data } = await Axios.get(audio.content, {
+                responseType: "stream",
+                headers: {
+                    Range: `bytes=${start}-${end}`,
+                },
+                timeout: 5000
+            });
+            return new APIResponse(206, new PartialContentInfo(data, start, end, size, audio.contentType));
+        } catch (e) {
+            return new APIResponse(503, "Refused by service");
+        }
+    }
+
+    public async getAudioInfo(trackID: string, range?: string): Promise<APIResponse> {
+        for (let i = 0; i < 3; i++) {
+            try {
+                const audio = await this.getAudioInfoOnce(trackID, range);
+                if (audio) return audio;
+            } catch (e) {
+                console.log("error on track", trackID);
+                if (e instanceof APIResponse) {
+                    console.log("error code:", e.statusCode, e.statusMessage);
+                    if (e.statusCode != 503) {
+                        return e;
+                    } else {
+                        console.log("error code 503 detected!");
+                    }
+                } else {
+                    console.error("Unknown error getting audio!", e);
+                }
+            }
+            console.log("couldn't get audio! trying again (" + (i + 1) + ")");
+            this.streamCache.delete(trackID);
+        }
+        console.log("Giving up on finding track", trackID);
+        return new APIResponse(503, "Refused by service");
     }
 }

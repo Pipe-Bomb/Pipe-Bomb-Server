@@ -12,14 +12,20 @@ let isConnected = false;
 let clientID: string = null;
 const BASE_URL = "https://api-v2.soundcloud.com";
 
-(async () => {
-    console.log("Connecting to SoundCloud...");
+async function reloadClientID() {
     await SCDL.connect();
-    console.log("Connected to SoundCloud!");
+    if (!clientID) {
+        console.log("Connected to SoundCloud!");
+    }
     isConnected = true;
     const anyReference: any = SCDL;
     clientID = anyReference.clientId;
-})();
+}
+
+console.log("Connecting to SoundCloud...");
+reloadClientID();
+
+setInterval(reloadClientID, 600_000);
 
 export async function getClientID() {
     return new Promise<string>(async resolve => {
@@ -124,6 +130,7 @@ export default class SoundCloud extends StreamingService {
             const trackInfo = (await SCDL.tracks.getTracksByIds([parseInt(trackID)]))[0];
             return this.convertJsonToTrack(trackInfo);
         } catch (e) {
+            console.log("failed to get soundcloud data!");
             throw new Exception(e);
         }
     }
