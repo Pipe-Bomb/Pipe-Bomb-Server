@@ -5,6 +5,7 @@ import Exception from "../response/Exception.js";
 import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIRespose.js";
 import StreamInfo from "./StreamInfo.js";
+import Axios from "axios";
 export default class Youtube extends StreamingService {
     constructor() {
         super("Youtube", "yt");
@@ -28,22 +29,63 @@ export default class Youtube extends StreamingService {
             throw new Exception(e);
         }
     }
+    forceGetAudio(trackID) {
+        trackID = this.convertTrackIDToLocal(trackID);
+        return new Promise(async (resolve, reject) => {
+            try {
+                let info;
+                try {
+                    info = await YTDL.getInfo(trackID);
+                    if (!info)
+                        throw "invalid";
+                }
+                catch (e) {
+                    console.log(e);
+                    return reject(new APIResponse(400, `Invalid track ID '${trackID}'`));
+                }
+                const audioFormats = YTDL.filterFormats(info.formats, "audioonly");
+                const reorderedFormats = [];
+                for (let format of audioFormats) {
+                    if (format.audioQuality == "AUDIO_QUALITY_MEDIUM") {
+                        const index = audioFormats.indexOf(format);
+                        if (index >= 0)
+                            audioFormats.splice(index, 1);
+                        reorderedFormats.push(format);
+                    }
+                }
+                reorderedFormats.push(...audioFormats);
+                async function checkFormat(url) {
+                    try {
+                        const { headers, status } = await Axios.head(url);
+                        if (status == 200) {
+                            return new StreamInfo(url, headers["content-type"], headers["content-length"]);
+                        }
+                    }
+                    catch { }
+                    return null;
+                }
+                for (let format of reorderedFormats) {
+                    const streamInfo = await checkFormat(format.url);
+                    if (streamInfo)
+                        return resolve(streamInfo);
+                }
+            }
+            catch { }
+            reject(new APIResponse(503, `Refused by service`));
+        });
+    }
     getAudio(trackID) {
         trackID = this.convertTrackIDToLocal(trackID);
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
-                const video = YTDL("https://www.youtube.com/watch?v=" + trackID, {
-                    filter: "audioonly",
-                    quality: "highestaudio"
-                });
-                video.on("info", async (info, format) => {
-                    resolve(new StreamInfo(format.url, "audio/webm", parseInt(format.contentLength)));
-                });
-                video.on("error", e => {
-                    reject(new APIResponse(503, `Refused by service`));
-                });
+                for (let i = 0; i < 3; i++) { // 3 tries
+                    const streamInfo = await this.forceGetAudio(trackID);
+                    if (streamInfo)
+                        return resolve(streamInfo);
+                }
             }
             catch {
+                console.log("failed to get youtube track 3 times!");
                 reject(new APIResponse(400, `Invalid track ID '${trackID}'`));
             }
         });

@@ -9,14 +9,18 @@ import { concatArrayBuffers, wait } from "../Utils.js";
 let isConnected = false;
 let clientID = null;
 const BASE_URL = "https://api-v2.soundcloud.com";
-(async () => {
-    console.log("Connecting to SoundCloud...");
+async function reloadClientID() {
     await SCDL.connect();
-    console.log("Connected to SoundCloud!");
+    if (!clientID) {
+        console.log("Connected to SoundCloud!");
+    }
     isConnected = true;
     const anyReference = SCDL;
     clientID = anyReference.clientId;
-})();
+}
+console.log("Connecting to SoundCloud...");
+reloadClientID();
+setInterval(reloadClientID, 600000);
 export async function getClientID() {
     return new Promise(async (resolve) => {
         if (clientID)
@@ -113,6 +117,7 @@ export default class SoundCloud extends StreamingService {
             return this.convertJsonToTrack(trackInfo);
         }
         catch (e) {
+            console.log("failed to get soundcloud data!");
             throw new Exception(e);
         }
     }

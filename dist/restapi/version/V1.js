@@ -3,8 +3,6 @@ import APIResponse from "../../response/APIRespose.js";
 import ServiceManager from "../../service/ServiceManager.js";
 import APIVersion from "./APIVersion.js";
 import Config from "../../Config.js";
-import Axios from "axios";
-import PartialContentInfo from "../PartialContentInfo.js";
 import ChartManager from "../../chart/ChartManager.js";
 import FS from "fs";
 import Path from "path";
@@ -112,48 +110,7 @@ export default class APIVersionV1 extends APIVersion {
             return new APIResponse(200, search);
         });
         this.createRoute("get", "/audio/:track_id", false, async (requestInfo) => {
-            const audio = await ServiceManager.getInstance().getAudio(requestInfo.parameters.track_id);
-            if (audio.content instanceof Buffer) {
-                return new APIResponse(200, new PartialContentInfo(audio.content, 0, audio.contentLength - 1, audio.contentLength, audio.contentType));
-            }
-            if (!audio.contentLength) {
-                const { headers } = await Axios.head(audio.content, {
-                    timeout: 3000
-                });
-                audio.contentLength = parseInt(headers["content-length"]);
-            }
-            const size = audio.contentLength;
-            let start = 0;
-            let end = size - 1;
-            if (requestInfo.headers.range) {
-                let split = requestInfo.headers.range.replace(/bytes=/, "").split("-");
-                start = parseInt(split[0], 10);
-                end = split[1] ? parseInt(split[1], 10) : size - 1;
-                if (!isNaN(start) && isNaN(end)) {
-                    end = size - 1;
-                }
-                if (isNaN(start) && !isNaN(end)) {
-                    start = size - end;
-                    end = size - 1;
-                }
-                if (start >= size || end >= size) {
-                    return new APIResponse(416, size);
-                }
-            }
-            try {
-                const { data } = await Axios.get(audio.content, {
-                    responseType: "stream",
-                    headers: {
-                        Range: `bytes=${start}-${end}`,
-                    },
-                    timeout: 5000
-                });
-                return new APIResponse(206, new PartialContentInfo(data, start, end, size, audio.contentType));
-            }
-            catch (e) {
-                console.error("failed to download audio!", requestInfo.parameters.track_id, audio.content); // TODO: try again?? idfk
-                return new APIResponse(503, "Refused by service");
-            }
+            return await ServiceManager.getInstance().getAudioInfo(requestInfo.parameters.track_id, requestInfo.headers.range);
         });
         this.createRoute("get", "/tracks/:track_id", true, async (requestInfo) => {
             const track = await ServiceManager.getInstance().getTrackInfo(requestInfo.parameters.track_id);
