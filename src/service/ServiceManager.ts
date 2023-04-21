@@ -12,6 +12,7 @@ const trackInfoLookupsM = Tx2.counter("Track lookups in last minute");
 const trackInfoLookupsH = Tx2.counter("Track lookups in last hour");
 const successfulAudioLookups = Tx2.counter("Successful audio lookups in last hour");
 const failedAudioLookups = Tx2.counter("Failed audio lookups in last hour");
+Tx2.metric('metric_name', () => 5);
 
 export interface ConversionWrapper {
     query: string,
