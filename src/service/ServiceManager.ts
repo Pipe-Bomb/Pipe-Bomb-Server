@@ -6,6 +6,12 @@ import Config from "../Config.js";
 import StreamInfo from "./StreamInfo.js";
 import PartialContentInfo from "../restapi/PartialContentInfo.js";
 import Axios from "axios";
+import Tx2 from "tx2";
+
+const trackInfoLookupsM = Tx2.counter("Track lookups in last minute");
+const trackInfoLookupsH = Tx2.counter("Track lookups in last hour");
+const successfulAudioLookups = Tx2.counter("Successful audio lookups in last hour");
+const failedAudioLookups = Tx2.counter("Failed audio lookups in last hour");
 
 export interface ConversionWrapper {
     query: string,
@@ -59,6 +65,16 @@ export default class ServiceManager {
         for (let service of this.services.values()) {
             if (service.prefix != prefix) continue;
             let track: Track;
+
+            trackInfoLookupsM.inc(1);
+            trackInfoLookupsH.inc(1);
+            setTimeout(() => {
+                trackInfoLookupsM.dec(1);
+            }, 60_000);
+            setTimeout(() => {
+                trackInfoLookupsH.dec(1);
+            }, 3_600_000);
+
             track = await service.getTrack(service.convertTrackIDToLocal(trackID));
             
             this.trackCache.set(track.trackID, track);
@@ -87,9 +103,20 @@ export default class ServiceManager {
                 });
                 this.streamCache.set(newTrackID, audio);
 
+                successfulAudioLookups.inc(1);
+                setTimeout(() => {
+                    successfulAudioLookups.dec(1);
+                }, 3_600_00);
+
                 resolve(audio);
             } catch (e) {
                 if (e instanceof APIResponse) return reject(e);
+
+                failedAudioLookups.inc(1);
+                setTimeout(() => {
+                    failedAudioLookups.dec(1);
+                }, 3_600_00);
+
                 reject(new Exception(e));
             }
         });
