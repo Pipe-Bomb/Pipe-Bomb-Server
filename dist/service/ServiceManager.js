@@ -6,21 +6,17 @@ import PartialContentInfo from "../restapi/PartialContentInfo.js";
 import Axios from "axios";
 import Pmx from "pmx";
 const probe = Pmx.probe();
-const trackInfoLookupsM = probe.meter({
+const trackInfoLookups = probe.meter({
     name: "Track info lookups in last minute",
     samples: 60
 });
-const trackInfoLookupsH = probe.meter({
-    name: "Track info lookups in last hour",
-    samples: 60 * 60
-});
 const successfulAudioLookups = probe.meter({
-    name: "Successful audio lookups in last hour",
-    samples: 60 * 60
+    name: "Successful audio lookups in last minute",
+    samples: 60
 });
 const failedAudioLookups = probe.meter({
-    name: "Failed audio lookups in last hour",
-    samples: 60 * 60
+    name: "Failed audio lookups in last minute",
+    samples: 60
 });
 class ServiceManager {
     constructor() {
@@ -67,9 +63,7 @@ class ServiceManager {
             if (service.prefix != prefix)
                 continue;
             let track;
-            trackInfoLookupsM.mark();
-            trackInfoLookupsH.mark();
-            console.log('track lookup');
+            trackInfoLookups.mark();
             track = await service.getTrack(service.convertTrackIDToLocal(trackID));
             this.trackCache.set(track.trackID, track);
             setTimeout(() => {
@@ -131,6 +125,7 @@ class ServiceManager {
                 };
             });
             function lookup(index, trackName) {
+                trackInfoLookups.mark();
                 service.search(trackName)
                     .then(results => {
                     tracks[index].track = results[0] || null;

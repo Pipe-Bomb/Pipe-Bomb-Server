@@ -6,6 +6,12 @@ import Exception from "../response/Exception.js";
 import Config from "../Config.js";
 import { Stream } from "stream";
 import PartialContentInfo from "./PartialContentInfo.js";
+import Pmx from "pmx";
+const probe = Pmx.probe();
+const requestMeter = probe.meter({
+    name: "API requests / second",
+    samples: 1
+});
 export default class RestAPI {
     constructor(port) {
         this.express = Express();
@@ -38,6 +44,7 @@ export default class RestAPI {
     createRoute(method, route, requireAuthentication, callback) {
         this.express[method](route, async (req, res) => {
             const startTime = Date.now();
+            requestMeter.mark();
             let callbackResponse;
             let user = null;
             try {
