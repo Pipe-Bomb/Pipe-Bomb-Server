@@ -4,12 +4,24 @@ import Exception from "../response/Exception.js";
 import Config from "../Config.js";
 import PartialContentInfo from "../restapi/PartialContentInfo.js";
 import Axios from "axios";
-import Tx2 from "tx2";
-const trackInfoLookupsM = Tx2.counter("Track lookups in last minute");
-const trackInfoLookupsH = Tx2.counter("Track lookups in last hour");
-const successfulAudioLookups = Tx2.counter("Successful audio lookups in last hour");
-const failedAudioLookups = Tx2.counter("Failed audio lookups in last hour");
-Tx2.metric('metric_name', () => 5);
+import Pmx from "pmx";
+const probe = Pmx.probe();
+const trackInfoLookupsM = probe.meter({
+    name: "Track info lookups in last minute",
+    samples: 60
+});
+const trackInfoLookupsH = probe.meter({
+    name: "Track info lookups in last hour",
+    samples: 60 * 60
+});
+const successfulAudioLookups = probe.meter({
+    name: "Successful audio lookups in last hour",
+    samples: 60 * 60
+});
+const failedAudioLookups = probe.meter({
+    name: "Failed audio lookups in last hour",
+    samples: 60 * 60
+});
 class ServiceManager {
     constructor() {
         this.services = new Map();
@@ -55,14 +67,9 @@ class ServiceManager {
             if (service.prefix != prefix)
                 continue;
             let track;
-            trackInfoLookupsM.inc(1);
-            trackInfoLookupsH.inc(1);
-            setTimeout(() => {
-                trackInfoLookupsM.dec(1);
-            }, 60000);
-            setTimeout(() => {
-                trackInfoLookupsH.dec(1);
-            }, 3600000);
+            trackInfoLookupsM.mark();
+            trackInfoLookupsH.mark();
+            console.log('track lookup');
             track = await service.getTrack(service.convertTrackIDToLocal(trackID));
             this.trackCache.set(track.trackID, track);
             setTimeout(() => {
@@ -87,19 +94,13 @@ class ServiceManager {
                     this.streamCache.delete(newTrackID);
                 });
                 this.streamCache.set(newTrackID, audio);
-                successfulAudioLookups.inc(1);
-                setTimeout(() => {
-                    successfulAudioLookups.dec(1);
-                }, 360000);
+                successfulAudioLookups.mark();
                 resolve(audio);
             }
             catch (e) {
                 if (e instanceof APIResponse)
                     return reject(e);
-                failedAudioLookups.inc(1);
-                setTimeout(() => {
-                    failedAudioLookups.dec(1);
-                }, 360000);
+                failedAudioLookups.mark();
                 reject(new Exception(e));
             }
         });
