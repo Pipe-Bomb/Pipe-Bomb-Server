@@ -8,6 +8,14 @@ import User from "../authentication/User.js";
 import Config from "../Config.js";
 import { Stream } from "stream";
 import PartialContentInfo from "./PartialContentInfo.js";
+import Pmx from "pmx";
+
+const probe = Pmx.probe();
+
+const requestMeter = probe.meter({
+    name: "API requests / second",
+    samples: 1
+});
 
 export default class RestAPI {
     public readonly port: number;
@@ -51,6 +59,7 @@ export default class RestAPI {
     public createRoute(method: "all" | "get" | "post" | "put" | "delete" | "patch" | "options" | "head", route: string, requireAuthentication: boolean, callback: (requestInfo: RequestInfo) => Promise<APIResponse>): void {
         this.express[method](route, async (req, res) => {
             const startTime = Date.now();
+            requestMeter.mark();
 
             let callbackResponse: APIResponse | Exception;
             let user: User = null;
