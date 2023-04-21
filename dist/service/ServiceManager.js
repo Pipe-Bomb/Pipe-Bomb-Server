@@ -4,6 +4,11 @@ import Exception from "../response/Exception.js";
 import Config from "../Config.js";
 import PartialContentInfo from "../restapi/PartialContentInfo.js";
 import Axios from "axios";
+import Tx2 from "tx2";
+const trackInfoLookupsM = Tx2.counter("Track lookups in last minute");
+const trackInfoLookupsH = Tx2.counter("Track lookups in last hour");
+const successfulAudioLookups = Tx2.counter("Successful audio lookups in last hour");
+const failedAudioLookups = Tx2.counter("Failed audio lookups in last hour");
 class ServiceManager {
     constructor() {
         this.services = new Map();
@@ -49,6 +54,14 @@ class ServiceManager {
             if (service.prefix != prefix)
                 continue;
             let track;
+            trackInfoLookupsM.inc(1);
+            trackInfoLookupsH.inc(1);
+            setTimeout(() => {
+                trackInfoLookupsM.dec(1);
+            }, 60000);
+            setTimeout(() => {
+                trackInfoLookupsH.dec(1);
+            }, 3600000);
             track = await service.getTrack(service.convertTrackIDToLocal(trackID));
             this.trackCache.set(track.trackID, track);
             setTimeout(() => {
@@ -73,11 +86,19 @@ class ServiceManager {
                     this.streamCache.delete(newTrackID);
                 });
                 this.streamCache.set(newTrackID, audio);
+                successfulAudioLookups.inc(1);
+                setTimeout(() => {
+                    successfulAudioLookups.dec(1);
+                }, 360000);
                 resolve(audio);
             }
             catch (e) {
                 if (e instanceof APIResponse)
                     return reject(e);
+                failedAudioLookups.inc(1);
+                setTimeout(() => {
+                    failedAudioLookups.dec(1);
+                }, 360000);
                 reject(new Exception(e));
             }
         });
