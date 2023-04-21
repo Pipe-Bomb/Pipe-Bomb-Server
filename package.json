@@ -30,6 +30,7 @@
     "node-youtube-music": "^0.10.2",
     "random-word-slugs": "^0.1.6",
     "scdl-core": "^1.1.0",
+    "youtube-music-api": "github:Pipe-Bomb/Youtube-Music-API",
     "yt-search": "^2.10.4",
     "ytdl-core": "^4.10.0",
     "ytsr": "^3.8.0"
