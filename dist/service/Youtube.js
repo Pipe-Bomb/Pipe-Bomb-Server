@@ -95,7 +95,15 @@ export default class Youtube extends StreamingService {
         const url = "https://www.youtube.com/watch?v=" + trackID;
         try {
             const data = await YTDL.getInfo(url);
-            let thumbnail = data.thumbnail_url || null;
+            let thumbnailSize = 0;
+            let thumbnail = null;
+            for (let thumbnailData of data.videoDetails.thumbnails) {
+                const newSize = thumbnailData.width * thumbnailData.height;
+                if (newSize > thumbnailSize) {
+                    thumbnailSize = newSize;
+                    thumbnail = thumbnailData.url;
+                }
+            }
             if (!thumbnail && data.videoDetails.thumbnails.length) {
                 thumbnail = data.videoDetails.thumbnails[0].url;
             }
@@ -111,7 +119,34 @@ export default class Youtube extends StreamingService {
         }
     }
     async getSuggestedTracks(track) {
-        return []; // TODO: implement
+        const trackID = this.convertTrackIDToLocal(track.trackID);
+        try {
+            const info = await YTDL.getInfo(trackID);
+            if (!info)
+                throw "invalid";
+            const tracks = [];
+            for (let trackInfo of info.related_videos) {
+                let thumbnailSize = 0;
+                let thumbnail = null;
+                for (let thumbnailData of trackInfo.thumbnails) {
+                    const newSize = thumbnailData.width * thumbnailData.height;
+                    if (newSize > thumbnailSize) {
+                        thumbnailSize = newSize;
+                        thumbnail = thumbnailData.url;
+                    }
+                }
+                tracks.push(new Track(`yt-${trackInfo.id}`, {
+                    title: trackInfo.title,
+                    artists: [typeof trackInfo.author == "string" ? trackInfo.author : trackInfo.author.name],
+                    image: thumbnail
+                }));
+            }
+            return tracks;
+        }
+        catch (e) {
+            console.error(e);
+            new APIResponse(400, `Invalid track ID '${trackID}'`);
+        }
     }
 }
 //# sourceMappingURL=Youtube.js.map
