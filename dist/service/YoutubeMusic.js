@@ -5,6 +5,7 @@ import StreamingService from "./StreamingService.js";
 import ServiceManager from "./ServiceManager.js";
 import Exception from "../response/Exception.js";
 import { wait } from "../Utils.js";
+import APIResponse from "../response/APIRespose.js";
 const Yta = new YTA();
 let initialized = false;
 Yta.initalize().then(() => {
@@ -54,6 +55,9 @@ export default class YoutubeMusic extends StreamingService {
         trackID = this.convertTrackIDToLocal(trackID);
         try {
             const data = await Yta.getSong(trackID);
+            if (Array.isArray(data.videoId)) {
+                throw new APIResponse(400, `Invalid track ID 'ym-${trackID}'`);
+            }
             let thumbnailSize = 0;
             let thumbnail = null;
             for (let thumbnailData of data.thumbnails) {
@@ -70,6 +74,9 @@ export default class YoutubeMusic extends StreamingService {
             });
         }
         catch (e) {
+            if (e instanceof APIResponse) {
+                throw e;
+            }
             console.log("YTA ERROR", e);
             throw new Exception(e);
         }

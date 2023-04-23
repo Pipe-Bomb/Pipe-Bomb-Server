@@ -7,6 +7,7 @@ import ChartManager from "../../chart/ChartManager.js";
 import FS from "fs";
 import Path from "path";
 import { DIRNAME, stripNonAlphanumeric } from "../../Utils.js";
+import Axios from "axios";
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI) {
         super("v1", restAPI);
@@ -121,6 +122,16 @@ export default class APIVersionV1 extends APIVersion {
             const track = await serviceManager.getTrackInfo(requestInfo.parameters.track_id);
             const suggestions = await serviceManager.getServiceFromTrackID(track.trackID).getSuggestedTracks(track);
             return new APIResponse(200, suggestions);
+        });
+        this.createRoute("get", "/tracks/:track_id/thumbnail", false, async (requestInfo) => {
+            const serviceManager = ServiceManager.getInstance();
+            const track = await serviceManager.getTrackInfo(requestInfo.parameters.track_id);
+            if (!track.metadata?.image)
+                return new APIResponse(206, null);
+            const stream = await Axios.get(track.metadata.image, {
+                responseType: "stream"
+            });
+            return new APIResponse(200, stream.data);
         });
         this.createRoute("get", "/charts/:chart_id", true, async (requestInfo) => {
             const chartManager = ChartManager.getInstance();
