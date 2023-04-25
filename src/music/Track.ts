@@ -1,7 +1,9 @@
 interface TrackMeta {
     readonly artists: string[],
     readonly title: string,
-    readonly image?: string
+    readonly image?: string,
+    readonly duration: number,
+    readonly originalUrl: string
 }
 
 export default class Track {

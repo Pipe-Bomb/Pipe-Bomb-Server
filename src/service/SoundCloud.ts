@@ -1,4 +1,5 @@
 import { SoundCloud as SCDL } from "scdl-core";
+import { Track as SCDLTrack } from "scdl-core/dist/@types/track.js"
 import Axios from "axios";
 
 import Exception from "../response/Exception.js";
@@ -57,11 +58,7 @@ export default class SoundCloud extends StreamingService {
                 let newTrackInfo: any = trackInfo;
                 switch (trackInfo.kind) {
                     case "track":
-                        out.push(new Track(`sc-${newTrackInfo.id}`, {
-                            title: newTrackInfo.title,
-                            artists: [newTrackInfo.user.username],
-                            image: newTrackInfo?.artwork_url || null
-                        }));
+                        out.push(newTrackInfo);
                         break;
                     // todo: add support for artists and playlists
                 }
@@ -135,11 +132,13 @@ export default class SoundCloud extends StreamingService {
         }
     }
 
-    public convertJsonToTrack(trackInfo: any) {
+    public convertJsonToTrack(trackInfo: SCDLTrack) {
         return new Track("sc-" + trackInfo.id, {
             title: trackInfo.title,
             artists: [trackInfo.user.username],
-            image: trackInfo?.artwork_url || null
+            image: trackInfo?.artwork_url || null,
+            duration: trackInfo.duration / 1000,
+            originalUrl: trackInfo.permalink_url
         });
     }
 
@@ -155,11 +154,7 @@ export default class SoundCloud extends StreamingService {
             const out: Track[] = [];
 
             data.data.collection.forEach(newTrackInfo => {
-                out.push(new Track(`sc-${newTrackInfo.id}`, {
-                    title: newTrackInfo.title,
-                    artists: [newTrackInfo.user.username],
-                    image: newTrackInfo?.artwork_url || null
-                }));
+                out.push(this.convertJsonToTrack(newTrackInfo));
             })
             return out;
         } catch (e) {

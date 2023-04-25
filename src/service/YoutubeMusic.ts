@@ -7,7 +7,7 @@ import StreamingService from "./StreamingService.js";
 import ServiceManager from "./ServiceManager.js";
 import StreamInfo from "./StreamInfo.js";
 import Exception from "../response/Exception.js";
-import { wait } from "../Utils.js";
+import { convertArrayToString, wait } from "../Utils.js";
 import APIResponse from "../response/APIRespose.js";
 
 const Yta = new YTA();
@@ -38,16 +38,7 @@ export default class YoutubeMusic extends StreamingService {
             const out: Track[] = [];
 
             results.forEach(data => {
-                const artists: string[] = [];
-                data.artists.forEach(artist => {
-                    artists.push(artist.name);
-                });
-
-                out.push(new Track(`ym-${data.youtubeId}`, {
-                    title: data.title,
-                    artists,
-                    image: data.thumbnailUrl || null
-                }));
+                out.push(this.convertJsonToTrack(data));
             });
             return out;
         } catch (e) {
@@ -59,6 +50,16 @@ export default class YoutubeMusic extends StreamingService {
         trackID = this.convertTrackIDToLocal(trackID);
 
         return ServiceManager.getInstance().getService("Youtube").getAudio(trackID);
+    }
+
+    public convertJsonToTrack(trackInfo: YTM.MusicVideo) {
+        return new Track(`ym-${trackInfo.youtubeId}`, {
+            title: trackInfo.title,
+            artists: trackInfo.artists.map(artist => artist.name),
+            image: trackInfo.thumbnailUrl,
+            duration: trackInfo.duration.totalSeconds,
+            originalUrl: "https://music.youtube.com/watch?v=" + trackInfo.youtubeId
+        })
     }
 
     public async getTrack(trackID: string): Promise<Track> {
@@ -85,13 +86,15 @@ export default class YoutubeMusic extends StreamingService {
             return new Track(`ym-${trackID}`, {
                 title: data.name,
                 artists: [data.artist],
-                image: thumbnail
+                image: thumbnail,
+                duration: Math.round(data.duration / 1000),
+                originalUrl: data.url
             });
         } catch (e) {
             if (e instanceof APIResponse) {
                 throw e;
             }
-            console.log("YTA ERROR", e);
+            console.error("YTA ERROR", e);
             throw new Exception(e);
         }
     }
@@ -105,16 +108,7 @@ export default class YoutubeMusic extends StreamingService {
             const out: Track[] = [];
 
             results.forEach(data => {
-                const artists: string[] = [];
-                data.artists.forEach(artist => {
-                    artists.push(artist.name);
-                });
-
-                out.push(new Track(`ym-${data.youtubeId}`, {
-                    title: data.title,
-                    artists,
-                    image: data.thumbnailUrl || null
-                }));
+                out.push(this.convertJsonToTrack(data));
             });
 
             return out;

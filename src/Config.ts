@@ -3,13 +3,17 @@ import { generateSlug } from "random-word-slugs";
 
 console.log("Loading config...");
 
-interface ConfigTemplate {
+export interface ConfigTemplate {
     server_port: number,
     server_name: string,
     collection_cache_time: number,
     user_cache_time: number,
     track_cache_time: number,
-    audio_cache_time: number
+    audio_cache_time: number,
+    lyrics_cache_time: number,
+    spotify_track_conversion_cache_time: number,
+    spotify_client_id: string,
+    spotify_client_secret: string
 }
 
 const defaultConfig: ConfigTemplate = {
@@ -21,7 +25,11 @@ const defaultConfig: ConfigTemplate = {
     collection_cache_time: 60,
     user_cache_time: 60,
     track_cache_time: 60,
-    audio_cache_time: 60
+    audio_cache_time: 60,
+    spotify_track_conversion_cache_time: 60,
+    lyrics_cache_time: 60,
+    spotify_client_id: "",
+    spotify_client_secret: ""
 }
 
 let Config: ConfigTemplate;
@@ -35,11 +43,11 @@ if (FS.existsSync("./Config.json")) {
 
     for (let key of Object.keys(defaultConfig)) {
         if (!Object.keys(Config).includes(key)) {
-            console.log(`Config file is missing property "${key}", inserting default value of`, defaultConfig[key]);
+            console.log(`Config file is missing property "${key}", inserting default value of "`, defaultConfig[key], `"`);
             needsUpdating = true;
             Config[key] = defaultConfig[key];
         } else if (typeof Config[key] != typeof defaultConfig[key]) {
-            console.log(`Config file's property "${key}" is of invalid type "${typeof Config[key]}". Delete this line from your config file or replace the value with the appropriate type (${typeof defaultConfig[key]}). Default value is`, defaultConfig[key]);
+            console.log(`Config file's property "${key}" is of invalid type "${typeof Config[key]}". Delete this line from your config file or replace the value with the appropriate type (${typeof defaultConfig[key]}). Default value is "`, defaultConfig[key], `"`);
             error = true;
         }
     }
