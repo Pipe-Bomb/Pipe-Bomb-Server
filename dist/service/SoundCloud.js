@@ -49,11 +49,7 @@ export default class SoundCloud extends StreamingService {
                 let newTrackInfo = trackInfo;
                 switch (trackInfo.kind) {
                     case "track":
-                        out.push(new Track(`sc-${newTrackInfo.id}`, {
-                            title: newTrackInfo.title,
-                            artists: [newTrackInfo.user.username],
-                            image: newTrackInfo?.artwork_url || null
-                        }));
+                        out.push(newTrackInfo);
                         break;
                     // todo: add support for artists and playlists
                 }
@@ -125,7 +121,9 @@ export default class SoundCloud extends StreamingService {
         return new Track("sc-" + trackInfo.id, {
             title: trackInfo.title,
             artists: [trackInfo.user.username],
-            image: trackInfo?.artwork_url || null
+            image: trackInfo?.artwork_url || null,
+            duration: trackInfo.duration / 1000,
+            originalUrl: trackInfo.permalink_url
         });
     }
     async getSuggestedTracks(track) {
@@ -138,11 +136,7 @@ export default class SoundCloud extends StreamingService {
                 throw "invalid response";
             const out = [];
             data.data.collection.forEach(newTrackInfo => {
-                out.push(new Track(`sc-${newTrackInfo.id}`, {
-                    title: newTrackInfo.title,
-                    artists: [newTrackInfo.user.username],
-                    image: newTrackInfo?.artwork_url || null
-                }));
+                out.push(this.convertJsonToTrack(newTrackInfo));
             });
             return out;
         }

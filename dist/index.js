@@ -9,6 +9,7 @@ import UserCache from "./authentication/UserCache.js";
 import Config from "./Config.js";
 import BeatportChart from "./chart/BeatportChart.js";
 import SoundCloudChart from "./chart/SoundCloudChart.js";
+import SpotifyMetaHandler from "./SpotifyMetaHandler.js";
 const database = new SQLite("music.db");
 // await database.resetDatabase(); // uncomment to reset database on server start
 // database.createSchema();
@@ -18,6 +19,7 @@ CollectionCache.getInstance().linkDatabase(database);
 new YoutubeMusic();
 new SoundCloud();
 new Youtube();
+const spotify = SpotifyMetaHandler.getInstance();
 new BeatportChart("top-100", "beatport-top-100", "Beatport Top 100");
 new BeatportChart("genre/drum-bass/1/top-100", "beatport-dnb-top-100", "Beatport Drum & Bass Top 100");
 new BeatportChart("genre/tech-house/11/top-100", "beatport-tech-house-top-100", "Beatport Tech House Top 100");

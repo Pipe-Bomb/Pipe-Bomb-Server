@@ -8,6 +8,7 @@ import FS from "fs";
 import Path from "path";
 import { DIRNAME, stripNonAlphanumeric } from "../../Utils.js";
 import Axios from "axios";
+import SpotifyMetaHandler from "../../SpotifyMetaHandler.js";
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI) {
         super("v1", restAPI);
@@ -132,6 +133,12 @@ export default class APIVersionV1 extends APIVersion {
                 responseType: "stream"
             });
             return new APIResponse(200, stream.data);
+        });
+        this.createRoute("get", "/tracks/:track_id/lyrics", true, async (requestInfo) => {
+            const serviceManager = ServiceManager.getInstance();
+            const track = await serviceManager.getTrackInfo(requestInfo.parameters.track_id);
+            const lyrics = await SpotifyMetaHandler.getInstance().getLyrics(track);
+            return new APIResponse(200, lyrics);
         });
         this.createRoute("get", "/charts/:chart_id", true, async (requestInfo) => {
             const chartManager = ChartManager.getInstance();

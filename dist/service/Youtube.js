@@ -16,11 +16,7 @@ export default class Youtube extends StreamingService {
             const out = [];
             results.items.forEach(data => {
                 if (data.type == "video") {
-                    out.push(new Track(`yt-${data.id}`, {
-                        title: data.title,
-                        artists: [data.author.name],
-                        image: data.thumbnails[0].url
-                    }));
+                    out.push(this.convertJsonToTrack(data));
                 }
             });
             return out;
@@ -107,16 +103,44 @@ export default class Youtube extends StreamingService {
             if (!thumbnail && data.videoDetails.thumbnails.length) {
                 thumbnail = data.videoDetails.thumbnails[0].url;
             }
-            return new Track(`yt-${trackID}`, {
+            let details = data.videoDetails;
+            details.id = data.videoDetails.videoId;
+            console.log("yt duration seconds:", data.videoDetails.lengthSeconds);
+            console.log("ytdl upload:", data.videoDetails.uploadDate);
+            return new Track(`yt-${data.videoDetails.videoId}`, {
                 title: data.videoDetails.title,
                 artists: [data.videoDetails.author.name],
-                image: thumbnail
+                image: thumbnail,
+                duration: parseFloat(data.videoDetails.lengthSeconds),
+                originalUrl: data.videoDetails.video_url
             });
         }
         catch (e) {
             console.log("YTDL ERROR", url);
             throw new Exception(e);
         }
+    }
+    convertJsonToTrack(trackInfo) {
+        let thumbnailSize = 0;
+        let thumbnail = null;
+        for (let thumbnailData of trackInfo.thumbnails) {
+            const newSize = thumbnailData.width * thumbnailData.height;
+            if (newSize > thumbnailSize) {
+                thumbnailSize = newSize;
+                thumbnail = thumbnailData.url;
+            }
+        }
+        let duration = 0;
+        trackInfo.duration.split(":").forEach(value => {
+            duration = duration * 60 + parseInt(value);
+        });
+        return new Track(`yt-${trackInfo.id}`, {
+            title: trackInfo.title,
+            artists: [typeof trackInfo.author == "string" ? trackInfo.author : trackInfo.author.name],
+            image: thumbnail,
+            duration,
+            originalUrl: "https://youtube.com/watch?v=" + trackInfo.id
+        });
     }
     async getSuggestedTracks(track) {
         const trackID = this.convertTrackIDToLocal(track.trackID);
@@ -135,11 +159,8 @@ export default class Youtube extends StreamingService {
                         thumbnail = thumbnailData.url;
                     }
                 }
-                tracks.push(new Track(`yt-${trackInfo.id}`, {
-                    title: trackInfo.title,
-                    artists: [typeof trackInfo.author == "string" ? trackInfo.author : trackInfo.author.name],
-                    image: thumbnail
-                }));
+                const anyTrack = trackInfo;
+                tracks.push(this.convertJsonToTrack(anyTrack));
             }
             return tracks;
         }

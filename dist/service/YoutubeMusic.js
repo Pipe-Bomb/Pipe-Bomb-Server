@@ -30,15 +30,7 @@ export default class YoutubeMusic extends StreamingService {
             const results = await YTM.searchMusics(query);
             const out = [];
             results.forEach(data => {
-                const artists = [];
-                data.artists.forEach(artist => {
-                    artists.push(artist.name);
-                });
-                out.push(new Track(`ym-${data.youtubeId}`, {
-                    title: data.title,
-                    artists,
-                    image: data.thumbnailUrl || null
-                }));
+                out.push(this.convertJsonToTrack(data));
             });
             return out;
         }
@@ -49,6 +41,15 @@ export default class YoutubeMusic extends StreamingService {
     getAudio(trackID) {
         trackID = this.convertTrackIDToLocal(trackID);
         return ServiceManager.getInstance().getService("Youtube").getAudio(trackID);
+    }
+    convertJsonToTrack(trackInfo) {
+        return new Track(`ym-${trackInfo.youtubeId}`, {
+            title: trackInfo.title,
+            artists: trackInfo.artists.map(artist => artist.name),
+            image: trackInfo.thumbnailUrl,
+            duration: trackInfo.duration.totalSeconds,
+            originalUrl: "https://music.youtube.com/watch?v=" + trackInfo.youtubeId
+        });
     }
     async getTrack(trackID) {
         await waitForInitialization();
@@ -70,14 +71,16 @@ export default class YoutubeMusic extends StreamingService {
             return new Track(`ym-${trackID}`, {
                 title: data.name,
                 artists: [data.artist],
-                image: thumbnail
+                image: thumbnail,
+                duration: Math.round(data.duration / 1000),
+                originalUrl: data.url
             });
         }
         catch (e) {
             if (e instanceof APIResponse) {
                 throw e;
             }
-            console.log("YTA ERROR", e);
+            console.error("YTA ERROR", e);
             throw new Exception(e);
         }
     }
@@ -87,15 +90,7 @@ export default class YoutubeMusic extends StreamingService {
             const results = await YTM.getSuggestions(trackID);
             const out = [];
             results.forEach(data => {
-                const artists = [];
-                data.artists.forEach(artist => {
-                    artists.push(artist.name);
-                });
-                out.push(new Track(`ym-${data.youtubeId}`, {
-                    title: data.title,
-                    artists,
-                    image: data.thumbnailUrl || null
-                }));
+                out.push(this.convertJsonToTrack(data));
             });
             return out;
         }
