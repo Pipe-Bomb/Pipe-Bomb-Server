@@ -122,7 +122,7 @@ export default class SpotifyMetaHandler {
         let data;
         try {
             data = (await Axios.get(`https://spotify-lyric-api.herokuapp.com/?trackid=${track}`)).data; // todo: implement this internally so it doesn't depend on some random guy's heroku app
-            if (data.error !== false)
+            if (data.error !== false || data.syncType != "LINE_SYNCED")
                 throw "Spotify Heroku error";
         }
         catch (e) {
