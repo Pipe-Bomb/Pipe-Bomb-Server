@@ -9,6 +9,7 @@ import Axios from "axios";
 import Pmx from "pmx";
 
 const probe = Pmx.probe();
+const config = Config();
 
 const trackInfoLookups = probe.meter({
     name: "Track info lookups in last minute",
@@ -107,6 +108,13 @@ export default class ServiceManager {
                     this.streamCache.delete(newTrackID);
                 });
                 this.streamCache.set(newTrackID, audio);
+
+                setTimeout(() => {
+                    const oldAudio = this.streamCache.get(newTrackID);
+                    if (oldAudio == audio) {
+                        this.streamCache.delete(newTrackID);
+                    }
+                }, config.audio_cache_time * 60_000);
 
                 successfulAudioLookups.mark();
 
