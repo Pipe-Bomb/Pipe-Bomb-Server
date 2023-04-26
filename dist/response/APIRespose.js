@@ -7,7 +7,7 @@ class APIResponse {
         this.statusCode = statusCode;
         this.statusMessage = APIResponse.statusCodes[this.statusCode.toString()];
         this.response = response;
-        this.options = options || null;
+        this.options = options || {};
     }
 }
 APIResponse.statusCodes = {
