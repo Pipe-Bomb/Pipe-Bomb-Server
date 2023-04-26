@@ -49,7 +49,7 @@ export default class SoundCloud extends StreamingService {
                 let newTrackInfo = trackInfo;
                 switch (trackInfo.kind) {
                     case "track":
-                        out.push(newTrackInfo);
+                        out.push(this.convertJsonToTrack(newTrackInfo));
                         break;
                     // todo: add support for artists and playlists
                 }
