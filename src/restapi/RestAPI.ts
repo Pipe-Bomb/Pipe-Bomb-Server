@@ -149,7 +149,12 @@ export default class RestAPI {
             if (callbackResponse.response instanceof Stream) {
                 callbackResponse.response.pipe(res);
             } else {
-                res.send(callbackResponse);
+                res.send({
+                    processTime: callbackResponse.processTime,
+                    statusCode: callbackResponse.statusCode,
+                    statusMessage: callbackResponse.statusMessage,
+                    response: callbackResponse.response
+                });
             }
         });
     }

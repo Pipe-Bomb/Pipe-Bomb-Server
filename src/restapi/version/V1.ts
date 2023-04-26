@@ -153,7 +153,9 @@ export default class APIVersionV1 extends APIVersion {
 
         this.createRoute("get", "/tracks/:track_id/audio", false, async requestInfo => { // get audio for track
             const response = await ServiceManager.getInstance().getAudioInfo(requestInfo.parameters.track_id, requestInfo.headers.range);
-            response.options.cacheTime = 3600 * 24 * 7;
+            if (response.statusCode == 200) {
+                response.options.cacheTime = 3600 * 24 * 7;
+            }
             return response;
         })
 
