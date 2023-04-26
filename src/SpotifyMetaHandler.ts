@@ -44,7 +44,10 @@ export default class SpotifyMetaHandler {
     }
 
     private async waitForAuth() {
-        return new Promise<void>(async resolve => {
+        return new Promise<void>(async (resolve, reject) => {
+            if (!this.config.spotify_client_id || !this.config.spotify_client_secret) {
+                reject(new APIResponse(503, "Spotify related features are not available on this Pipe Bomb server."));
+            }
             while (!this.authenticated) {
                 await wait(100);
             }
@@ -79,6 +82,7 @@ export default class SpotifyMetaHandler {
             const results = await this.spotify.searchTracks(query);
             return results.body.tracks.items;
         } catch (e) {
+            if (e instanceof APIResponse) throw e;
             if (track instanceof Track) {
                 throw new Exception(`Failed to search Spotify for track "${track.trackID}" (${query})`);
             } else {

@@ -138,14 +138,20 @@ export default class APIVersionV1 extends APIVersion {
         });
         
 
-        this.createRoute("get", "/audio/:track_id", false, async requestInfo => { // get audio for track
+        this.createRoute("get", "/audio/:track_id", false, async requestInfo => { // DEPRECATED AND WILL BE REMOVED. use /v1/tracks/:track_id/audio
             return await ServiceManager.getInstance().getAudioInfo(requestInfo.parameters.track_id, requestInfo.headers.range);
         });
+
+        
 
         this.createRoute("get", "/tracks/:track_id", true, async requestInfo => {
             const track = await ServiceManager.getInstance().getTrackInfo(requestInfo.parameters.track_id);
             return new APIResponse(200, track);
         });
+
+        this.createRoute("get", "/tracks/:track_id/audio", false, async requestInfo => { // get audio for track
+            return await ServiceManager.getInstance().getAudioInfo(requestInfo.parameters.track_id, requestInfo.headers.range);
+        })
 
         this.createRoute("get", "/tracks/:track_id/suggested", true, async requestInfo => {
             const serviceManager = ServiceManager.getInstance();
