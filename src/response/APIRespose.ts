@@ -1,5 +1,9 @@
 import Exception from "./Exception.js";
 
+export interface APIResponseOptions {
+    cacheTime?: number
+}
+
 export default class APIResponse {
     public static statusCodes = {
         '200': 'OK',
@@ -49,11 +53,13 @@ export default class APIResponse {
     public readonly statusMessage: string;
     public readonly response: any;
     public processTime: number | null = null;
+    public readonly options: APIResponseOptions | null;
 
-    constructor(statusCode: number, response: any) {
+    constructor(statusCode: number, response: any, options?: APIResponseOptions) {
         if (!(statusCode.toString() in APIResponse.statusCodes)) throw new Exception(`'${statusCode}' is not a valid status code.`);
         this.statusCode = statusCode;
         this.statusMessage = APIResponse.statusCodes[this.statusCode.toString()];
         this.response = response;
+        this.options = options || null;
     }
 }
