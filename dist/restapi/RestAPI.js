@@ -80,6 +80,11 @@ export default class RestAPI {
                 callbackResponse = new APIResponse(500, "Internal server error");
             }
             callbackResponse.processTime = Date.now() - startTime;
+            if (callbackResponse.options) {
+                if (callbackResponse.options.cacheTime) {
+                    res.set("Cache-control", `public, max-age=${callbackResponse.options.cacheTime}`);
+                }
+            }
             if (callbackResponse.statusCode == 301 || callbackResponse.statusCode == 302) {
                 res.redirect(callbackResponse.statusCode, callbackResponse.response);
                 return;

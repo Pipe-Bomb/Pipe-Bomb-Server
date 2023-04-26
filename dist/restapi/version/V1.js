@@ -116,16 +116,22 @@ export default class APIVersionV1 extends APIVersion {
         });
         this.createRoute("get", "/tracks/:track_id", true, async (requestInfo) => {
             const track = await ServiceManager.getInstance().getTrackInfo(requestInfo.parameters.track_id);
-            return new APIResponse(200, track);
+            return new APIResponse(200, track, {
+                cacheTime: 3600
+            });
         });
         this.createRoute("get", "/tracks/:track_id/audio", false, async (requestInfo) => {
-            return await ServiceManager.getInstance().getAudioInfo(requestInfo.parameters.track_id, requestInfo.headers.range);
+            const response = await ServiceManager.getInstance().getAudioInfo(requestInfo.parameters.track_id, requestInfo.headers.range);
+            response.options.cacheTime = 3600 * 24 * 7;
+            return response;
         });
         this.createRoute("get", "/tracks/:track_id/suggested", true, async (requestInfo) => {
             const serviceManager = ServiceManager.getInstance();
             const track = await serviceManager.getTrackInfo(requestInfo.parameters.track_id);
             const suggestions = await serviceManager.getServiceFromTrackID(track.trackID).getSuggestedTracks(track);
-            return new APIResponse(200, suggestions);
+            return new APIResponse(200, suggestions, {
+                cacheTime: 3600
+            });
         });
         this.createRoute("get", "/tracks/:track_id/thumbnail", false, async (requestInfo) => {
             const serviceManager = ServiceManager.getInstance();
@@ -135,13 +141,17 @@ export default class APIVersionV1 extends APIVersion {
             const stream = await Axios.get(track.metadata.image, {
                 responseType: "stream"
             });
-            return new APIResponse(200, stream.data);
+            return new APIResponse(200, stream.data, {
+                cacheTime: 3600
+            });
         });
         this.createRoute("get", "/tracks/:track_id/lyrics", true, async (requestInfo) => {
             const serviceManager = ServiceManager.getInstance();
             const track = await serviceManager.getTrackInfo(requestInfo.parameters.track_id);
             const lyrics = await SpotifyMetaHandler.getInstance().getLyrics(track);
-            return new APIResponse(200, lyrics);
+            return new APIResponse(200, lyrics, {
+                cacheTime: 3600
+            });
         });
         this.createRoute("get", "/charts/:chart_id", true, async (requestInfo) => {
             const chartManager = ChartManager.getInstance();
@@ -151,6 +161,8 @@ export default class APIVersionV1 extends APIVersion {
                 name: chart.getName(),
                 service: chart.service,
                 trackList: await chart.getTracks()
+            }, {
+                cacheTime: 300
             });
         });
         this.createRoute("get", "/charts", true, async (requestInfo) => {
@@ -173,7 +185,9 @@ export default class APIVersionV1 extends APIVersion {
                 if (!FS.existsSync(filePath)) {
                     return resolve(new APIResponse(404, `'${serviceName}' is not a valid service!`));
                 }
-                resolve(new APIResponse(200, FS.createReadStream(filePath)));
+                resolve(new APIResponse(200, FS.createReadStream(filePath), {
+                    cacheTime: 3600
+                }));
             });
         });
     }

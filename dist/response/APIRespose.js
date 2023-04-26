@@ -1,12 +1,13 @@
 import Exception from "./Exception.js";
 class APIResponse {
-    constructor(statusCode, response) {
+    constructor(statusCode, response, options) {
         this.processTime = null;
         if (!(statusCode.toString() in APIResponse.statusCodes))
             throw new Exception(`'${statusCode}' is not a valid status code.`);
         this.statusCode = statusCode;
         this.statusMessage = APIResponse.statusCodes[this.statusCode.toString()];
         this.response = response;
+        this.options = options || null;
     }
 }
 APIResponse.statusCodes = {
