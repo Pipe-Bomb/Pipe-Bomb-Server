@@ -53,4 +53,34 @@ export function stripNonAlphanumeric(input, allowSpaces) {
         return input.replace(/[^0-9a-zA-Z ]/g, "");
     return input.replace(/[^0-9a-zA-Z]/g, "");
 }
+export function removeDuplicates(items, matchProperty) {
+    if (matchProperty) {
+        const existingMatchProperties = [];
+        for (let item of items) {
+            const itemMatchProp = matchProperty(item);
+            if (existingMatchProperties.includes(itemMatchProp)) {
+                items.splice(items.indexOf(item), 1);
+                continue;
+            }
+            existingMatchProperties.push(itemMatchProp);
+        }
+    }
+    else {
+        const newList = [];
+        for (let item of items) {
+            if (!newList.includes(item)) {
+                newList.push(item);
+            }
+        }
+        items.splice(0, items.length, ...newList);
+    }
+}
+export function removeItems(items, shouldKeep) {
+    const newList = [];
+    for (let item of items) {
+        if (shouldKeep(item))
+            newList.push(item);
+    }
+    items.splice(0, items.length, ...newList);
+}
 //# sourceMappingURL=Utils.js.map

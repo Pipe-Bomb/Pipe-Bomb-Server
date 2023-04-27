@@ -4,7 +4,7 @@ import Track from "../music/Track.js";
 import StreamingService from "./StreamingService.js";
 import ServiceManager from "./ServiceManager.js";
 import Exception from "../response/Exception.js";
-import { wait } from "../Utils.js";
+import { removeDuplicates, removeItems, wait } from "../Utils.js";
 import APIResponse from "../response/APIResponse.js";
 const Yta = new YTA();
 let initialized = false;
@@ -32,6 +32,7 @@ export default class YoutubeMusic extends StreamingService {
             results.forEach(data => {
                 out.push(this.convertJsonToTrack(data));
             });
+            removeDuplicates(out, track => track.trackID);
             return out;
         }
         catch (e) {
@@ -92,6 +93,8 @@ export default class YoutubeMusic extends StreamingService {
             results.forEach(data => {
                 out.push(this.convertJsonToTrack(data));
             });
+            removeDuplicates(out, track => track.trackID);
+            removeItems(out, newTrack => newTrack.trackID != track.trackID);
             return out;
         }
         catch (e) {

@@ -5,7 +5,7 @@ import Track from "../music/Track.js";
 import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
-import { concatArrayBuffers, wait } from "../Utils.js";
+import { concatArrayBuffers, removeDuplicates, removeItems, wait } from "../Utils.js";
 let isConnected = false;
 let clientID = null;
 const BASE_URL = "https://api-v2.soundcloud.com";
@@ -54,6 +54,7 @@ export default class SoundCloud extends StreamingService {
                     // todo: add support for artists and playlists
                 }
             });
+            removeDuplicates(out, track => track.trackID);
             return out;
         }
         catch (e) {
@@ -138,6 +139,8 @@ export default class SoundCloud extends StreamingService {
             data.data.collection.forEach(newTrackInfo => {
                 out.push(this.convertJsonToTrack(newTrackInfo));
             });
+            removeDuplicates(out, track => track.trackID);
+            removeItems(out, newTrack => newTrack.trackID != track.trackID);
             return out;
         }
         catch (e) {
