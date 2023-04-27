@@ -114,7 +114,7 @@ export default class SpotifyMetaHandler {
         }
         const existingLyrics = this.cachedLyrics.get(track);
         if (existingLyrics) {
-            if (!existingLyrics.length) {
+            if (!existingLyrics.lyrics.length) {
                 if (originalTrack instanceof Track) {
                     throw new APIResponse(404, `Lyrics for track '${originalTrack.trackID}' not found`);
                 }
@@ -122,17 +122,20 @@ export default class SpotifyMetaHandler {
                     throw new APIResponse(404, `Lyrics for track '${originalTrack}' (Spotify ID) not found`);
                 }
             }
-            return Array.from(existingLyrics);
+            return existingLyrics;
         }
         let data;
         try {
             data = (await Axios.get(`https://spotify-lyric-api.herokuapp.com/?trackid=${track}`)).data; // todo: implement this internally so it doesn't depend on some random guy's heroku app
-            if (data.error !== false || data.syncType != "LINE_SYNCED")
+            if (data.error !== false)
                 throw "Spotify Heroku error";
         }
         catch (e) {
             const spotifyTrackId = track;
-            const lyrics = [];
+            const lyrics = {
+                synced: false,
+                lyrics: []
+            };
             this.cachedLyrics.set(track, lyrics);
             setTimeout(() => {
                 const newLyrics = this.cachedLyrics.get(spotifyTrackId);
@@ -148,13 +151,28 @@ export default class SpotifyMetaHandler {
             }
         }
         try {
-            const lyrics = [];
-            for (let line of data.lines) {
-                if (typeof line.startTimeMs == "string" && typeof line.words == "string") {
-                    lyrics.push({
-                        time: parseInt(line.startTimeMs) / 1000,
-                        words: line.words.replaceAll("♪", " ").trim()
-                    });
+            const lyrics = {
+                synced: false,
+                lyrics: []
+            };
+            if (data.syncType == "LINE_SYNCED") {
+                lyrics.synced = true;
+                for (let line of data.lines) {
+                    if (typeof line.startTimeMs == "string" && typeof line.words == "string") {
+                        lyrics.lyrics.push({
+                            time: parseInt(line.startTimeMs) / 1000,
+                            words: line.words.replaceAll("♪", " ").trim()
+                        });
+                    }
+                }
+            }
+            else {
+                for (let line of data.lines) {
+                    if (typeof line.words == "string") {
+                        lyrics.lyrics.push({
+                            words: line.words.replaceAll("♪", " ").trim()
+                        });
+                    }
                 }
             }
             const spotifyTrackId = track;
@@ -165,11 +183,14 @@ export default class SpotifyMetaHandler {
                     this.cachedLyrics.delete(spotifyTrackId);
                 }
             }, this.config.lyrics_cache_time * 60000);
-            return Array.from(lyrics);
+            return lyrics;
         }
         catch (e) {
             const spotifyTrackId = track;
-            const lyrics = [];
+            const lyrics = {
+                synced: false,
+                lyrics: []
+            };
             this.cachedLyrics.set(track, lyrics);
             setTimeout(() => {
                 const newLyrics = this.cachedLyrics.get(spotifyTrackId);
