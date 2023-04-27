@@ -10,6 +10,7 @@ import Config from "./Config.js";
 import BeatportChart from "./chart/BeatportChart.js";
 import SoundCloudChart from "./chart/SoundCloudChart.js";
 import SpotifyMetaHandler from "./SpotifyMetaHandler.js";
+import AZLyrics from "./service/AZLyrics.js";
 
 const database = new SQLite("music.db");
 // await database.resetDatabase(); // uncomment to reset database on server start
@@ -22,8 +23,9 @@ CollectionCache.getInstance().linkDatabase(database);
 new YoutubeMusic();
 new SoundCloud();
 new Youtube();
+new AZLyrics();
 
-const spotify = SpotifyMetaHandler.getInstance();
+SpotifyMetaHandler.getInstance();
 
 new BeatportChart("top-100", "beatport-top-100", "Beatport Top 100");
 new BeatportChart("genre/drum-bass/1/top-100", "beatport-dnb-top-100", "Beatport Drum & Bass Top 100");
