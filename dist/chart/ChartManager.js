@@ -1,4 +1,4 @@
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 import Exception from "../response/Exception.js";
 export default class ChartManager {
     constructor() {

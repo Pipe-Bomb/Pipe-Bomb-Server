@@ -5,7 +5,7 @@ import StreamingService from "./StreamingService.js";
 import ServiceManager from "./ServiceManager.js";
 import Exception from "../response/Exception.js";
 import { wait } from "../Utils.js";
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 const Yta = new YTA();
 let initialized = false;
 Yta.initalize().then(() => {

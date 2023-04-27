@@ -1,7 +1,7 @@
 import Express from "express";
 import Cors from "cors";
 import UserCache from "../authentication/UserCache.js";
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 import Exception from "../response/Exception.js";
 import Config from "../Config.js";
 import { Stream } from "stream";

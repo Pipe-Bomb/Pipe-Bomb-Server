@@ -1,6 +1,6 @@
 import UserCache from "../authentication/UserCache.js";
 import Track from "../music/Track.js";
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 import ServiceManager from "../service/ServiceManager.js";
 import Collection from "./Collection.js";
 class CollectionCache {

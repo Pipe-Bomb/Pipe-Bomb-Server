@@ -3,7 +3,7 @@ import Axios from "axios";
 import Exception from "../response/Exception.js";
 import Track from "../music/Track.js";
 import StreamingService from "./StreamingService.js";
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
 import { concatArrayBuffers, wait } from "../Utils.js";
 let isConnected = false;

@@ -1,5 +1,5 @@
 import Track from "../music/Track.js";
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 import Exception from "../response/Exception.js";
 import Config from "../Config.js";
 import PartialContentInfo from "../restapi/PartialContentInfo.js";

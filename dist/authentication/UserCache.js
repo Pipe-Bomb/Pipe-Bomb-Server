@@ -1,5 +1,5 @@
 import Axios from "axios";
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 import User from "./User.js";
 class UserCache {
     constructor() {

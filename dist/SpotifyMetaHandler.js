@@ -4,7 +4,7 @@ import Config from "./Config.js";
 import Track from "./music/Track.js";
 import Exception from "./response/Exception.js";
 import Axios from "axios";
-import APIResponse from "./response/APIRespose.js";
+import APIResponse from "./response/APIResponse.js";
 export default class SpotifyMetaHandler {
     static getInstance() {
         if (this.instance)
