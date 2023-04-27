@@ -7,8 +7,13 @@ import Axios from "axios";
 import APIResponse from "./response/APIResponse.js";
 
 export interface Lyric {
-    time: number,
+    time?: number,
     words: string
+}
+
+export interface Lyrics {
+    synced: boolean,
+    lyrics: Lyric[]
 }
 
 export default class SpotifyMetaHandler {
@@ -18,7 +23,7 @@ export default class SpotifyMetaHandler {
     private authenticated = false;
     private readonly config: ConfigTemplate;
     private cachedConversions: Map<string, SpotifyApi.TrackObjectFull> = new Map();
-    private cachedLyrics: Map<string, Lyric[] | null> = new Map();
+    private cachedLyrics: Map<string, Lyrics | null> = new Map();
 
     public static getInstance() {
         if (this.instance) return this.instance;
@@ -131,23 +136,26 @@ export default class SpotifyMetaHandler {
 
         const existingLyrics = this.cachedLyrics.get(track);
         if (existingLyrics) {
-            if (!existingLyrics.length) {
+            if (!existingLyrics.lyrics.length) {
                 if (originalTrack instanceof Track) {
                     throw new APIResponse(404, `Lyrics for track '${originalTrack.trackID}' not found`);
                 } else {
                     throw new APIResponse(404, `Lyrics for track '${originalTrack}' (Spotify ID) not found`);
                 }
             }
-            return Array.from(existingLyrics);
+            return existingLyrics;
         }
 
         let data: any;
         try {
             data = (await Axios.get(`https://spotify-lyric-api.herokuapp.com/?trackid=${track}`)).data; // todo: implement this internally so it doesn't depend on some random guy's heroku app
-            if (data.error !== false || data.syncType != "LINE_SYNCED") throw "Spotify Heroku error";
+            if (data.error !== false) throw "Spotify Heroku error";
         } catch (e) {
             const spotifyTrackId = track;
-            const lyrics: Lyric[] = [];
+            const lyrics: Lyrics = {
+                synced: false,
+                lyrics: []
+            }
             this.cachedLyrics.set(track, lyrics);
             setTimeout(() => {
                 const newLyrics = this.cachedLyrics.get(spotifyTrackId);
@@ -166,16 +174,30 @@ export default class SpotifyMetaHandler {
         
 
         try {
-            const lyrics: Lyric[] = [];
+            const lyrics: Lyrics = {
+                synced: false,
+                lyrics: []
+            };
 
-            for (let line of data.lines) {
-                if (typeof line.startTimeMs == "string" && typeof line.words == "string") {
-                    lyrics.push({
-                        time: parseInt(line.startTimeMs) / 1000,
-                        words: line.words.replaceAll("♪", " ").trim()
-                    });
+            if (data.syncType == "LINE_SYNCED") {
+                lyrics.synced = true;
+                for (let line of data.lines) {
+                    if (typeof line.startTimeMs == "string" && typeof line.words == "string") {
+                        lyrics.lyrics.push({
+                            time: parseInt(line.startTimeMs) / 1000,
+                            words: line.words.replaceAll("♪", " ").trim()
+                        });
+                    }
                 }
-            }
+            } else {
+                for (let line of data.lines) {
+                    if (typeof line.words == "string") {
+                        lyrics.lyrics.push({
+                            words: line.words.replaceAll("♪", " ").trim()
+                        })
+                    }
+                }
+            }            
 
             const spotifyTrackId = track;
             this.cachedLyrics.set(track, lyrics);
@@ -187,10 +209,13 @@ export default class SpotifyMetaHandler {
                 }
             }, this.config.lyrics_cache_time * 60_000);
 
-            return Array.from(lyrics);
+            return lyrics;
         } catch (e) {
             const spotifyTrackId = track;
-            const lyrics: Lyric[] = [];
+            const lyrics: Lyrics = {
+                synced: false,
+                lyrics: []
+            }
             this.cachedLyrics.set(track, lyrics);
 
             setTimeout(() => {
