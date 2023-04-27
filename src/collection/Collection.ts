@@ -132,7 +132,6 @@ export default class Collection {
                             allTracks.push(track);
                         }
                     }
-                    allTracks.push(...suggestions);
                 } catch (e) {
                     console.error(e);
                 }

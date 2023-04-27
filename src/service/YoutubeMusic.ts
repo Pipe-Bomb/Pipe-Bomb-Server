@@ -7,7 +7,7 @@ import StreamingService from "./StreamingService.js";
 import ServiceManager from "./ServiceManager.js";
 import StreamInfo from "./StreamInfo.js";
 import Exception from "../response/Exception.js";
-import { convertArrayToString, wait } from "../Utils.js";
+import { convertArrayToString, removeDuplicates, removeItems, wait } from "../Utils.js";
 import APIResponse from "../response/APIResponse.js";
 
 const Yta = new YTA();
@@ -40,6 +40,9 @@ export default class YoutubeMusic extends StreamingService {
             results.forEach(data => {
                 out.push(this.convertJsonToTrack(data));
             });
+
+            removeDuplicates(out, track => track.trackID);
+            
             return out;
         } catch (e) {
             throw new Exception(e);
@@ -110,6 +113,9 @@ export default class YoutubeMusic extends StreamingService {
             results.forEach(data => {
                 out.push(this.convertJsonToTrack(data));
             });
+
+            removeDuplicates(out, track => track.trackID);
+            removeItems(out, newTrack => newTrack.trackID != track.trackID);
 
             return out;
         } catch (e) {

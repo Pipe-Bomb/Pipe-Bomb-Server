@@ -7,6 +7,7 @@ import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
 import Axios from "axios";
+import { removeDuplicates, removeItems } from "../Utils.js";
 
 export default class Youtube extends StreamingService {
     constructor() {
@@ -24,6 +25,9 @@ export default class Youtube extends StreamingService {
                     out.push(this.convertJsonToTrack(data));
                 }
             });
+
+            removeDuplicates(out, track => track.trackID);
+            
             return out;
         } catch (e) {
             throw new Exception(e);
@@ -164,18 +168,13 @@ export default class Youtube extends StreamingService {
             const tracks: Track[] = [];
 
             for (let trackInfo of info.related_videos) {
-                let thumbnailSize = 0;
-                let thumbnail: string | null = null;
-                for (let thumbnailData of trackInfo.thumbnails) {
-                    const newSize = thumbnailData.width * thumbnailData.height;
-                    if (newSize > thumbnailSize) {
-                        thumbnailSize = newSize;
-                        thumbnail = thumbnailData.url;
-                    }
-                }
                 const anyTrack: any = trackInfo;
                 tracks.push(this.convertJsonToTrack(anyTrack));
             }
+
+            removeDuplicates(tracks, track => track.trackID);
+            removeItems(tracks, newTrack => newTrack.trackID != track.trackID);
+
             return tracks;
         } catch (e) {
             console.error(e);
