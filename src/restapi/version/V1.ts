@@ -1,5 +1,5 @@
 import CollectionCache from "../../collection/CollectionCache.js";
-import APIResponse from "../../response/APIRespose.js";
+import APIResponse from "../../response/APIResponse.js";
 import ServiceManager from "../../service/ServiceManager.js";
 import RequestInfo from "../RequestInfo.js";
 import RestAPI from "../RestAPI.js";

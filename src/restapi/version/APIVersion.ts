@@ -1,4 +1,4 @@
-import APIResponse from "../../response/APIRespose.js";
+import APIResponse from "../../response/APIResponse.js";
 import RequestInfo from "../RequestInfo.js";
 import RestAPI from "../RestAPI.js";
 

@@ -1,7 +1,7 @@
 import Axios from "axios";
 import Database from "../database/Database.js";
 
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 import User from "./User.js";
 
 export default class UserCache {

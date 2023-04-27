@@ -2,7 +2,7 @@ import User from "../authentication/User.js";
 import UserCache from "../authentication/UserCache.js";
 import Database from "../database/Database.js";
 import Track from "../music/Track.js";
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 import ServiceManager from "../service/ServiceManager.js";
 import Collection from "./Collection.js";
 

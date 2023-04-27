@@ -8,7 +8,7 @@ import ServiceManager from "./ServiceManager.js";
 import StreamInfo from "./StreamInfo.js";
 import Exception from "../response/Exception.js";
 import { convertArrayToString, wait } from "../Utils.js";
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 
 const Yta = new YTA();
 

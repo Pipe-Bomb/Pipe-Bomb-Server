@@ -4,7 +4,7 @@ import YTDL from "ytdl-core"
 import Track from "../music/Track.js";
 import Exception from "../response/Exception.js";
 import StreamingService from "./StreamingService.js";
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
 import Axios from "axios";
 

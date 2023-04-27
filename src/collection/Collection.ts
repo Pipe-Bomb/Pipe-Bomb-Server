@@ -1,7 +1,7 @@
 import User from "../authentication/User.js";
 import Database from "../database/Database.js";
 import Track from "../music/Track.js";
-import APIResponse from "../response/APIRespose.js";
+import APIResponse from "../response/APIResponse.js";
 import ServiceManager from "../service/ServiceManager.js";
 import Config from "../Config.js";
 import { shuffle } from "../Utils.js";
