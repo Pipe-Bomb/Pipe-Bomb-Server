@@ -13,7 +13,8 @@ export interface ConfigTemplate {
     lyrics_cache_time: number,
     spotify_track_conversion_cache_time: number,
     spotify_client_id: string,
-    spotify_client_secret: string
+    spotify_client_secret: string,
+    lyrics_source_hierarchy: string[]
 }
 
 const defaultConfig: ConfigTemplate = {
@@ -29,7 +30,8 @@ const defaultConfig: ConfigTemplate = {
     spotify_track_conversion_cache_time: 60,
     lyrics_cache_time: 60,
     spotify_client_id: "",
-    spotify_client_secret: ""
+    spotify_client_secret: "",
+    lyrics_source_hierarchy: ["deezer", "spotify"]
 }
 
 let Config: ConfigTemplate;

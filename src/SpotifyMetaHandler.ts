@@ -5,18 +5,10 @@ import Track from "./music/Track.js";
 import Exception from "./response/Exception.js";
 import Axios from "axios";
 import APIResponse from "./response/APIResponse.js";
+import { LyricSource, Lyrics } from "./lyrics/LyricSource.js";
+import LyricsManager from "./lyrics/LyricsManager.js";
 
-export interface Lyric {
-    time?: number,
-    words: string
-}
-
-export interface Lyrics {
-    synced: boolean,
-    lyrics: Lyric[]
-}
-
-export default class SpotifyMetaHandler {
+export default class SpotifyMetaHandler implements LyricSource {
     private static instance: SpotifyMetaHandler;
 
     private spotify: SpotifyWebApi = null;
@@ -46,6 +38,8 @@ export default class SpotifyMetaHandler {
         });
 
         this.getAccessToken();
+
+        LyricsManager.getInstance().registerSource("spotify", this);
     }
 
     private async waitForAuth() {
@@ -64,7 +58,7 @@ export default class SpotifyMetaHandler {
         return new Promise<void>(resolve => {
             if (!this.authenticated) console.log("Connecting to Spotify...");
             this.spotify.clientCredentialsGrant().then(data => {
-                if (!this.authenticated) console.log("Connected to Spotify");
+                if (!this.authenticated) console.log("Connected to Spotify!");
 
                 this.spotify.setAccessToken(data.body.access_token);
                 this.authenticated = true;
@@ -126,22 +120,15 @@ export default class SpotifyMetaHandler {
         return null;
     }
 
-    public async getLyrics(track: Track | string) {
-        const originalTrack = track;
-        if (track instanceof Track) {
-            const spotifyTrack = await this.convertTrackToSpotify(track);
-            if (!spotifyTrack) throw new APIResponse(404, `Spotify alternative to track '${track.trackID}' not found.`);
-            track = spotifyTrack.id;
-        }
+    public async getLyrics(track: Track) {
+        const spotifyTrack = await this.convertTrackToSpotify(track);
+        if (!spotifyTrack) throw new APIResponse(404, `Spotify alternative to track '${track.trackID}' not found.`);
+        const trackID = spotifyTrack.id;
 
-        const existingLyrics = this.cachedLyrics.get(track);
+        const existingLyrics = this.cachedLyrics.get(trackID);
         if (existingLyrics) {
             if (!existingLyrics.lyrics.length) {
-                if (originalTrack instanceof Track) {
-                    throw new APIResponse(404, `Lyrics for track '${originalTrack.trackID}' not found`);
-                } else {
-                    throw new APIResponse(404, `Lyrics for track '${originalTrack}' (Spotify ID) not found`);
-                }
+                throw new APIResponse(404, `Lyrics for track '${track.trackID}' not found`);
             }
             return existingLyrics;
         }
@@ -151,31 +138,27 @@ export default class SpotifyMetaHandler {
             data = (await Axios.get(`https://spotify-lyric-api.herokuapp.com/?trackid=${track}`)).data; // todo: implement this internally so it doesn't depend on some random guy's heroku app
             if (data.error !== false) throw "Spotify Heroku error";
         } catch (e) {
-            const spotifyTrackId = track;
             const lyrics: Lyrics = {
                 synced: false,
+                provider: "Spotify",
                 lyrics: []
             }
-            this.cachedLyrics.set(track, lyrics);
+            this.cachedLyrics.set(trackID, lyrics);
             setTimeout(() => {
-                const newLyrics = this.cachedLyrics.get(spotifyTrackId);
+                const newLyrics = this.cachedLyrics.get(trackID);
                 if (newLyrics == lyrics) {
-                    this.cachedLyrics.delete(spotifyTrackId);
+                    this.cachedLyrics.delete(trackID);
                 }
             }, this.config.lyrics_cache_time * 60_000);
             
-            if (originalTrack instanceof Track) {
-                throw new APIResponse(404, `Lyrics for track '${originalTrack.trackID}' not found`);
-            } else {
-                throw new APIResponse(404, `Lyrics for track '${originalTrack}' (Spotify ID) not found`);
-            }
-            
+            throw new APIResponse(404, `Lyrics for track '${track.trackID}' not found`);
         }
         
 
         try {
             const lyrics: Lyrics = {
                 synced: false,
+                provider: "Spotify",
                 lyrics: []
             };
 
@@ -199,29 +182,28 @@ export default class SpotifyMetaHandler {
                 }
             }            
 
-            const spotifyTrackId = track;
-            this.cachedLyrics.set(track, lyrics);
+            this.cachedLyrics.set(trackID, lyrics);
 
             setTimeout(() => {
-                const newLyrics = this.cachedLyrics.get(spotifyTrackId);
+                const newLyrics = this.cachedLyrics.get(trackID);
                 if (newLyrics == lyrics) {
-                    this.cachedLyrics.delete(spotifyTrackId);
+                    this.cachedLyrics.delete(trackID);
                 }
             }, this.config.lyrics_cache_time * 60_000);
 
             return lyrics;
         } catch (e) {
-            const spotifyTrackId = track;
             const lyrics: Lyrics = {
                 synced: false,
+                provider: "Spotify",
                 lyrics: []
             }
-            this.cachedLyrics.set(track, lyrics);
+            this.cachedLyrics.set(trackID, lyrics);
 
             setTimeout(() => {
-                const newLyrics = this.cachedLyrics.get(spotifyTrackId);
+                const newLyrics = this.cachedLyrics.get(trackID);
                 if (newLyrics == lyrics) {
-                    this.cachedLyrics.delete(spotifyTrackId);
+                    this.cachedLyrics.delete(trackID);
                 }
             }, this.config.lyrics_cache_time * 60_000);
 
