@@ -10,8 +10,8 @@ import FS from "fs";
 import Path from "path";
 import { DIRNAME, stripNonAlphanumeric } from "../../Utils.js";
 import Axios from "axios";
-import SpotifyMetaHandler from "../../SpotifyMetaHandler.js";
 import LyricsManager from "../../lyrics/LyricsManager.js";
+import UserCache from "../../authentication/UserCache.js";
 
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI: RestAPI) {
@@ -226,14 +226,27 @@ export default class APIVersionV1 extends APIVersion {
                 const filePath = Path.join(DIRNAME, "..", "assets", "services", `${stripNonAlphanumeric(serviceName, true)}.png`);
 
                 if (!FS.existsSync(filePath)) {
-                    return resolve(new APIResponse(404, `'${serviceName}' is not a valid service!`));
+                    return resolve(new APIResponse(404, `'${serviceName}' is not a valid service`));
                 }
 
                 resolve(new APIResponse(200, FS.createReadStream(filePath), {
                     cacheTime: 3600
                 }));
-            })
-            
+            });
+        });
+
+
+
+        this.createRoute("get", "/user/:user_id", true, async requestInfo => {
+            const user = await UserCache.getInstance().getUserByID(requestInfo.parameters.user_id);
+            if (!user) throw new APIResponse(404, `User '${requestInfo.parameters.user_id}' not found`);
+
+            const playlists = await CollectionCache.getInstance().getCollectionsByUser(user);
+
+            return new APIResponse(200, {
+                user: user.toJson(),
+                playlists: playlists.map(playlist => playlist.toJson())
+            });
         });
     }
 
