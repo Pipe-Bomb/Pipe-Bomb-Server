@@ -21,7 +21,7 @@ export default class DeezerLyrics implements LyricSource {
             this.token = data.results.checkForm;
             this.cookie = headers["set-cookie"].map(cookie => cookie.split(";")[0]).join("; ");
         } catch {}
-        setTimeout(this.getToken, 3_600_000);
+        setTimeout(() => this.getToken(), 3_600_000);
     }
 
     private waitForAuth() {
