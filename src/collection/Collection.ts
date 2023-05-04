@@ -10,7 +10,7 @@ export default class Collection {
     private static readonly timeout = Config().collection_cache_time;
 
     private readonly database: Database;
-    public readonly collectionID: number;
+    public readonly collectionID: string;
     private name: string;
     public readonly owner: User;
     private trackList: Track[] = [];
@@ -20,7 +20,7 @@ export default class Collection {
     private timer: NodeJS.Timeout = null;
     private clearCallback: (collection: Collection) => void;
 
-    public constructor(collectionID: number, name: string, database: Database, trackList: Track[], clearCallback: (collection: Collection) => void, owner?: User) {
+    public constructor(collectionID: string, name: string, database: Database, trackList: Track[], clearCallback: (collection: Collection) => void, owner?: User) {
         this.collectionID = collectionID;
         this.name = name;
         this.database = database;

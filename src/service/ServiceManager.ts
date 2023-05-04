@@ -7,6 +7,7 @@ import StreamInfo from "./StreamInfo.js";
 import PartialContentInfo from "../restapi/PartialContentInfo.js";
 import Axios from "axios";
 import Pmx from "pmx";
+import ExternalCollectionCache from "../collection/ExternalCollectionCache.js";
 
 const probe = Pmx.probe();
 const config = Config();
@@ -92,6 +93,23 @@ export default class ServiceManager {
         throw new APIResponse(400, `'${trackID}' is not a valid track ID`);
     }
 
+    public async getExternalCollection(type: "playlist", collectionID: string) {
+        let service: StreamingService;
+        try {
+            service = this.getServiceFromTrackID(collectionID);
+        } catch {
+            throw new APIResponse(400, `'${collectionID}' is not a valid collection ID`);
+        }
+
+        const existingCollection = ExternalCollectionCache.getInstance().get(type, collectionID);
+        if (existingCollection) return existingCollection;
+        
+        if (type == "playlist") {
+            const playlist = await service.getPlaylist(collectionID);
+            return playlist;
+        }
+    }
+
     public getAudio(trackID: Track | string): Promise<StreamInfo> {
         return new Promise(async (resolve, reject) => {
             const newTrackID = trackID instanceof Track ? trackID.trackID : trackID;
@@ -158,8 +176,13 @@ export default class ServiceManager {
 
                 service.search(trackName)
                 .then(results => {
-                    tracks[index].track = results[0] || null;
-                    tracks.push()
+                    for (let item of results) {
+                        if (item instanceof Track) {
+                            tracks[index].track = item;
+                            return;
+                        }
+                    }
+                    tracks[index].track = null;
                 }).finally(() => {
                     if (++completedSearches < totalSize) {
                         const newIndex = totalSize - trackNames.length;

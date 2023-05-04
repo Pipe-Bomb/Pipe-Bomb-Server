@@ -12,6 +12,7 @@ import { DIRNAME, stripNonAlphanumeric } from "../../Utils.js";
 import Axios from "axios";
 import LyricsManager from "../../lyrics/LyricsManager.js";
 import UserCache from "../../authentication/UserCache.js";
+import ExternalCollection from "../../collection/ExternalCollection.js";
 
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI: RestAPI) {
@@ -131,11 +132,36 @@ export default class APIVersionV1 extends APIVersion {
 
 
 
+        this.createRoute("get", "/externalplaylists/:playlist_id", false, async requestInfo => {
+            const externalPlaylist = await ServiceManager.getInstance().getExternalCollection("playlist", requestInfo.parameters.playlist_id);
+            return new APIResponse(200, externalPlaylist.toJson());
+        });
+
+        this.createRoute("get", "/externalplaylists/:playlist_id/:page", false, async requestInfo => {
+            const externalPlaylist = await ServiceManager.getInstance().getExternalCollection("playlist", requestInfo.parameters.playlist_id);
+            if (isNaN(parseInt(requestInfo.parameters.page))) {
+                throw new APIResponse(400, `'${requestInfo.parameters.page}' is not a valid page number`);
+            }
+            const page = await externalPlaylist.getTracklist(parseInt(requestInfo.parameters.page));
+            return new APIResponse(200, page);
+        });
+
+
+
+
 
         this.createRoute("post", "/search", true, async requestInfo => { // search for tracks
             const service = ServiceManager.getInstance().getService(requestInfo.body.service);
             const search = await service.search(requestInfo.body.query);
-            return new APIResponse(200, search);
+            return new APIResponse(200, search.map(item => {
+                if (item instanceof ExternalCollection) {
+                    return item.toJson();
+                }
+                return {
+                    type: "track",
+                    ...item
+                };
+            }));
         });
         
 
@@ -253,6 +279,6 @@ export default class APIVersionV1 extends APIVersion {
     private async getCollectionFromRequestInfo(requestInfo: RequestInfo) {
         if (!requestInfo.parameters.playlist_id) throw new APIResponse(400, `Missing collection ID`);
         if (isNaN(parseInt(requestInfo.parameters.playlist_id))) throw new APIResponse(400, `Invalid collection ID '${requestInfo.parameters.playlist_id}'`);
-        return await CollectionCache.getInstance().getCollection(parseInt(requestInfo.parameters.playlist_id), false, requestInfo.user);
+        return await CollectionCache.getInstance().getCollection(requestInfo.parameters.playlist_id, false, requestInfo.user);
     }
 }

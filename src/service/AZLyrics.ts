@@ -1,6 +1,9 @@
 import { removeDuplicates } from "../Utils.js";
+import Collection from "../collection/Collection.js";
+import ExternalCollection from "../collection/ExternalCollection.js";
 import Track from "../music/Track.js";
 import APIResponse from "../response/APIResponse.js";
+import Exception from "../response/Exception.js";
 import ServiceManager from "./ServiceManager.js";
 import StreamInfo from "./StreamInfo.js";
 import StreamingService from "./StreamingService.js";
@@ -43,5 +46,9 @@ export default class AZLyrics extends StreamingService {
 
     public async getSuggestedTracks(track: Track): Promise<Track[]> {
         return [];
+    }
+
+    public getPlaylist(playlistID: string): Promise<ExternalCollection> {
+        throw new Exception("Method not implemented.");
     }
 }

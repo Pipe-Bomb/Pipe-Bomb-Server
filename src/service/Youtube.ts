@@ -8,6 +8,7 @@ import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
 import Axios from "axios";
 import { removeDuplicates, removeItems } from "../Utils.js";
+import ExternalCollection from "../collection/ExternalCollection.js";
 
 export default class Youtube extends StreamingService {
     constructor() {
@@ -180,5 +181,11 @@ export default class Youtube extends StreamingService {
             console.error(e);
             new APIResponse(400, `Invalid track ID '${trackID}'`)
         }
+    }
+
+
+    
+    public getPlaylist(playlistID: string): Promise<ExternalCollection> {
+        throw new Exception("Method not implemented.");
     }
 }

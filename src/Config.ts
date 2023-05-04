@@ -7,6 +7,7 @@ export interface ConfigTemplate {
     server_port: number,
     server_name: string,
     collection_cache_time: number,
+    external_collection_cache_time: number,
     user_cache_time: number,
     track_cache_time: number,
     audio_cache_time: number,
@@ -24,6 +25,7 @@ const defaultConfig: ConfigTemplate = {
         partsOfSpeech: ["adjective", "adjective"]
     }) + " Pipe Bomb",
     collection_cache_time: 60,
+    external_collection_cache_time: 60,
     user_cache_time: 60,
     track_cache_time: 60,
     audio_cache_time: 60,

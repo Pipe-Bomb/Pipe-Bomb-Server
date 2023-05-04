@@ -10,7 +10,7 @@ export default class CollectionCache {
     private static instance: CollectionCache = null;
     
     private database: Database;
-    private collections: Map<number, Collection> = new Map();
+    private collections: Map<string, Collection> = new Map();
 
     private constructor() {
         console.log("Created collection cache");
@@ -26,7 +26,7 @@ export default class CollectionCache {
         return this;
     }
 
-    public async getCollection(collectionID: number, fastLoad: boolean, user?: User): Promise<Collection> {
+    public async getCollection(collectionID: string, fastLoad: boolean, user?: User): Promise<Collection> {
         // todo: add authorization
 
         const cachedCollection = this.collections.get(collectionID);

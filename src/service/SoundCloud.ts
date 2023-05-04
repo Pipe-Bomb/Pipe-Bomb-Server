@@ -1,5 +1,6 @@
 import { SoundCloud as SCDL } from "scdl-core";
 import { Track as SCDLTrack } from "scdl-core/dist/@types/track.js"
+import { Playlist as SCDLPlaylist } from "scdl-core/dist/@types/playlist.js"
 import Axios from "axios";
 
 import Exception from "../response/Exception.js";
@@ -8,8 +9,8 @@ import StreamingService from "./StreamingService.js";
 import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
 import { concatArrayBuffers, removeDuplicates, removeItems, wait } from "../Utils.js";
+import ExternalCollection from "../collection/ExternalCollection.js";
 
-let isConnected = false;
 let clientID: string = null;
 const BASE_URL = "https://api-v2.soundcloud.com";
 
@@ -18,7 +19,6 @@ async function reloadClientID() {
     if (!clientID) {
         console.log("Connected to SoundCloud!");
     }
-    isConnected = true;
     const anyReference: any = SCDL;
     clientID = anyReference.clientId;
 }
@@ -43,7 +43,7 @@ export default class SoundCloud extends StreamingService {
         super("SoundCloud", "sc");
     }
 
-    public async search(query: string, page?: number): Promise<Track[]> {
+    public async search(query: string, page?: number): Promise<(Track | ExternalCollection)[]> {
         await getClientID();
 
         try {
@@ -51,20 +51,30 @@ export default class SoundCloud extends StreamingService {
                 query,
                 limit: 20,
                 offset: (page * 20) || 0,
-                filter: "tracks"
+                filter: "all"
             });
-            const out: Track[] = [];
+            const out: (Track | ExternalCollection)[] = [];
             results.collection.forEach(trackInfo => {
                 let newTrackInfo: any = trackInfo;
                 switch (trackInfo.kind) {
                     case "track":
                         out.push(this.convertJsonToTrack(newTrackInfo));
                         break;
-                    // todo: add support for artists and playlists
+                    case "playlist":
+                        out.push(this.convertJsonToCollection(newTrackInfo));
+                        break;
+                    // todo: add support for artists and albums
                 }
             });
 
-            removeDuplicates(out, track => track.trackID);
+            removeDuplicates(out, item => {
+                if (item instanceof Track) {
+                    return "track " + item.trackID;
+                }
+                if (item instanceof ExternalCollection) {
+                    return item.type + " " + item.collectionID;
+                }
+            });
             
             return out;
         } catch (e) {
@@ -92,7 +102,7 @@ export default class SoundCloud extends StreamingService {
                 const { data: urlQuery } = await Axios.get(initialUrl);
                 const { data: playlist } = await Axios.get(urlQuery.url);
                 const urls: string[] = [];
-                playlist.split("\n").forEach(line => {
+                playlist.split("\n").forEach((line: string) => {
                     if (line.startsWith("https://")) urls.push(line);
                 });
 
@@ -145,6 +155,24 @@ export default class SoundCloud extends StreamingService {
         });
     }
 
+    public convertJsonToCollection(json: SCDLPlaylist) {
+        const tracks: Track[] = [];
+        for (let rawTrack of json.tracks) {
+            if (rawTrack.permalink) {
+                tracks.push(this.convertJsonToTrack(rawTrack));
+            } else {
+                tracks.push(new Track("sc-" + rawTrack.id));
+            }
+        }
+
+        let lastModified: number | Date = json.last_modified;
+        if (lastModified instanceof Date) {
+            lastModified = lastModified.getTime();
+        }
+        
+        return new ExternalCollection("playlist", this, "sc-" + json.id.toString(), json.title, lastModified, tracks, json?.artwork_url);
+    }
+
 
     public async getSuggestedTracks(track: Track): Promise<Track[]> {
         const trackID = this.convertTrackIDToLocal(track.trackID);
@@ -166,6 +194,20 @@ export default class SoundCloud extends StreamingService {
             return out;
         } catch (e) {
             throw new Exception(e);
+        }
+    }
+
+
+    public async getPlaylist(playlistID: string): Promise<ExternalCollection> {
+        playlistID = this.convertTrackIDToLocal(playlistID);
+        await getClientID();
+        try {
+            const data = await SCDL.playlists.getPlaylist("https://api.soundcloud.com/playlists/" + playlistID);
+            const playlist = this.convertJsonToCollection(data);
+            return playlist;
+        } catch (e) {
+            console.log(e);
+            throw new APIResponse(404, `Invalid collection ID '${playlistID}'`);
         }
     }
 }

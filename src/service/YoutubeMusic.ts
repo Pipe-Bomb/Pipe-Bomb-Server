@@ -1,5 +1,4 @@
 import * as YTM from "node-youtube-music";
-import YTDL from "ytdl-core";
 import YTA from "youtube-music-api";
 
 import Track from "../music/Track.js";
@@ -7,8 +6,9 @@ import StreamingService from "./StreamingService.js";
 import ServiceManager from "./ServiceManager.js";
 import StreamInfo from "./StreamInfo.js";
 import Exception from "../response/Exception.js";
-import { convertArrayToString, removeDuplicates, removeItems, wait } from "../Utils.js";
+import { removeDuplicates, removeItems, wait } from "../Utils.js";
 import APIResponse from "../response/APIResponse.js";
+import ExternalCollection from "../collection/ExternalCollection.js";
 
 const Yta = new YTA();
 
@@ -121,5 +121,10 @@ export default class YoutubeMusic extends StreamingService {
         } catch (e) {
             throw new Exception(e);
         }
+    }
+
+
+    public getPlaylist(playlistID: string): Promise<ExternalCollection> {
+        throw new Exception("Method not implemented.");
     }
 }
