@@ -20,10 +20,21 @@ export default class YoutubeService extends StreamingService {
     }
 
     public async convertUrl(url: string): Promise<UrlType> {
-        if (url.startsWith("youtube.com/watch?v=") || url.startsWith("youtu.be/")) { // track detected
+        if (url.startsWith("youtube.com/watch?v=")) { // track detected
             let id = url.split("=", 2)[1];
             if (id.includes("&")) {
                 id = id.split("&")[0];
+            }
+            return {
+                type: "track",
+                id: "yt-" + id
+            }
+        }
+
+        if (url.startsWith("youtu.be/")) { // track detected
+            let id = url.split("/")[1];
+            if (id.includes("?")) {
+                id = id.split("?")[0];
             }
             return {
                 type: "track",
