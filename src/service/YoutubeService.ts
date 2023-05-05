@@ -174,9 +174,12 @@ export default class YoutubeService extends StreamingService {
         }
 
         let duration = 0;
-        trackInfo.duration.split(":").forEach(value => {
-            duration = duration * 60 + parseInt(value);
-        });
+        if (trackInfo.duration) {
+            trackInfo.duration.split(":").forEach(value => {
+                duration = duration * 60 + parseInt(value);
+            });
+        }
+        
 
         return new Track(`yt-${trackInfo.id}`, {
             title: trackInfo.title,
