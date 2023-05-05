@@ -5,7 +5,7 @@ import Axios from "axios";
 
 import Exception from "../response/Exception.js";
 import Track from "../music/Track.js";
-import StreamingService from "./StreamingService.js";
+import StreamingService, { SearchOptions, UrlType } from "./StreamingService.js";
 import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
 import { concatArrayBuffers, removeDuplicates, removeItems, wait } from "../Utils.js";
@@ -38,12 +38,51 @@ export async function getClientID() {
     });
 }
 
-export default class SoundCloud extends StreamingService {
+export default class SoundCloudService extends StreamingService {
     constructor() {
-        super("SoundCloud", "sc");
+        super("SoundCloud", "sc", {
+            tracks: true,
+            playlists: true
+        });
     }
 
-    public async search(query: string, page?: number): Promise<(Track | ExternalCollection)[]> {
+    public async convertUrl(url: string): Promise<UrlType> { // https://soundcloud.com/skrillex/skrillex-with-bobby-raps-leave-me-like-this?in=eyezahh/sets/dads-birthday
+        if (!url.startsWith("soundcloud.com/")) return null;
+        
+        if (url.includes("?")) url = url.split("?")[0];
+        const split = url.split("/");
+        split.shift();
+
+        if (split.length == 2 && split[1] != "likes") { // track detected
+            try {
+                await getClientID();
+                const track = await SCDL.tracks.getTrack("https://soundcloud.com/" + split[0] + "/" + split[1]);
+                return {
+                    type: "track",
+                    id: "sc-" + track.id
+                }
+            } catch {
+                return null;
+            }
+        }
+        
+        if (split.length == 3 && split[1] == "sets") { // playlist detected
+            try {
+                await getClientID();
+                const playlist = await SCDL.playlists.getPlaylist("https://soundcloud.com/" + split[0] + "/sets/" + split[1]);
+                return {
+                    type: "playlist",
+                    id: "sc-" + playlist.id
+                }
+            } catch {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    public async search(query: string, types: SearchOptions[], page?: number): Promise<(Track | ExternalCollection)[]> {
         await getClientID();
 
         try {
@@ -58,10 +97,14 @@ export default class SoundCloud extends StreamingService {
                 let newTrackInfo: any = trackInfo;
                 switch (trackInfo.kind) {
                     case "track":
-                        out.push(this.convertJsonToTrack(newTrackInfo));
+                        if (types.includes("tracks")) {
+                            out.push(this.convertJsonToTrack(newTrackInfo));
+                        }
                         break;
                     case "playlist":
-                        out.push(this.convertJsonToCollection(newTrackInfo));
+                        if (types.includes("playlists")) {
+                            out.push(this.convertJsonToCollection(newTrackInfo));
+                        }
                         break;
                     // todo: add support for artists and albums
                 }

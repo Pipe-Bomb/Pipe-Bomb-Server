@@ -3,19 +3,16 @@ import { convertArrayToString, wait } from "./Utils.js";
 import Config, { ConfigTemplate } from "./Config.js";
 import Track from "./music/Track.js";
 import Exception from "./response/Exception.js";
-import Axios from "axios";
 import APIResponse from "./response/APIResponse.js";
-import { LyricSource, Lyrics } from "./lyrics/LyricSource.js";
-import LyricsManager from "./lyrics/LyricsManager.js";
+import ServiceManager from "./service/ServiceManager.js";
 
-export default class SpotifyMetaHandler implements LyricSource {
+export default class SpotifyMetaHandler {
     private static instance: SpotifyMetaHandler;
 
     private spotify: SpotifyWebApi = null;
     private authenticated = false;
     private readonly config: ConfigTemplate;
     private cachedConversions: Map<string, SpotifyApi.TrackObjectFull> = new Map();
-    private cachedLyrics: Map<string, Lyrics | null> = new Map();
 
     public static getInstance() {
         if (this.instance) return this.instance;
@@ -38,8 +35,6 @@ export default class SpotifyMetaHandler implements LyricSource {
         });
 
         this.getAccessToken();
-
-        LyricsManager.getInstance().registerSource("spotify", this);
     }
 
     private async waitForAuth() {
@@ -52,6 +47,11 @@ export default class SpotifyMetaHandler implements LyricSource {
             }
             resolve();
         });
+    }
+
+    public async getApi() {
+        await this.waitForAuth();
+        return this.spotify;
     }
 
     private async getAccessToken() {
@@ -78,7 +78,9 @@ export default class SpotifyMetaHandler implements LyricSource {
                 query = track;
             }
             await this.waitForAuth();
-            const results = await this.spotify.searchTracks(query);
+            const results = await this.spotify.searchTracks(query, {
+                limit: 30
+            });
             return results.body.tracks.items;
         } catch (e) {
             if (e instanceof APIResponse) throw e;
@@ -88,6 +90,34 @@ export default class SpotifyMetaHandler implements LyricSource {
                 throw new Exception(`Failed to search Spotify for query "${track}"`);
             }
         }   
+    }
+
+    public async getPlaylistTracklist(playlistID: string) {
+        try {
+            let offset = 0;
+            const trackQueries: (() => Promise<Track>)[] = [];
+            while (1) {
+                const tracklist = await this.spotify.getPlaylistTracks(playlistID, {
+                    limit: 100,
+                    offset
+                });
+                offset += 100;
+                for (let track of tracklist.body.items) {
+                    if (!track.track) continue;
+                    const artists = track.track.artists.map(artist => artist.name);
+                    const query = convertArrayToString(artists) + " - " + track.track.name
+                    trackQueries.push(async () => {
+                        const track = await ServiceManager.getInstance().convertNamesToTracks("Youtube Music", query);
+                        return track[0].track;
+                    });
+                }
+                if (!tracklist.body.next) break;
+            }
+            
+            return trackQueries;
+        } catch (e) {
+            throw new Exception(`Failed to get tracklist for Spotify playlist ${playlistID}`);
+        }
     }
 
     public async convertTrackToSpotify(track: Track) {
@@ -118,97 +148,5 @@ export default class SpotifyMetaHandler implements LyricSource {
         }, this.config.spotify_track_conversion_cache_time * 60_000);
 
         return null;
-    }
-
-    public async getLyrics(track: Track) {
-        const spotifyTrack = await this.convertTrackToSpotify(track);
-        if (!spotifyTrack) throw new APIResponse(404, `Spotify alternative to track '${track.trackID}' not found.`);
-        const trackID = spotifyTrack.id;
-
-        const existingLyrics = this.cachedLyrics.get(trackID);
-        if (existingLyrics) {
-            if (!existingLyrics.lyrics.length) {
-                throw new APIResponse(404, `Lyrics for track '${track.trackID}' not found`);
-            }
-            return existingLyrics;
-        }
-
-        let data: any;
-        try {
-            data = (await Axios.get(`https://spotify-lyric-api.herokuapp.com/?trackid=${track}`)).data; // todo: implement this internally so it doesn't depend on some random guy's heroku app
-            if (data.error !== false) throw "Spotify Heroku error";
-        } catch (e) {
-            const lyrics: Lyrics = {
-                synced: false,
-                provider: "Spotify",
-                lyrics: []
-            }
-            this.cachedLyrics.set(trackID, lyrics);
-            setTimeout(() => {
-                const newLyrics = this.cachedLyrics.get(trackID);
-                if (newLyrics == lyrics) {
-                    this.cachedLyrics.delete(trackID);
-                }
-            }, this.config.lyrics_cache_time * 60_000);
-            
-            throw new APIResponse(404, `Lyrics for track '${track.trackID}' not found`);
-        }
-        
-
-        try {
-            const lyrics: Lyrics = {
-                synced: false,
-                provider: "Spotify",
-                lyrics: []
-            };
-
-            if (data.syncType == "LINE_SYNCED") {
-                lyrics.synced = true;
-                for (let line of data.lines) {
-                    if (typeof line.startTimeMs == "string" && typeof line.words == "string") {
-                        lyrics.lyrics.push({
-                            time: parseInt(line.startTimeMs) / 1000,
-                            words: line.words.replaceAll("♪", " ").trim()
-                        });
-                    }
-                }
-            } else {
-                for (let line of data.lines) {
-                    if (typeof line.words == "string") {
-                        lyrics.lyrics.push({
-                            words: line.words.replaceAll("♪", " ").trim()
-                        })
-                    }
-                }
-            }            
-
-            this.cachedLyrics.set(trackID, lyrics);
-
-            setTimeout(() => {
-                const newLyrics = this.cachedLyrics.get(trackID);
-                if (newLyrics == lyrics) {
-                    this.cachedLyrics.delete(trackID);
-                }
-            }, this.config.lyrics_cache_time * 60_000);
-
-            return lyrics;
-        } catch (e) {
-            const lyrics: Lyrics = {
-                synced: false,
-                provider: "Spotify",
-                lyrics: []
-            }
-            this.cachedLyrics.set(trackID, lyrics);
-
-            setTimeout(() => {
-                const newLyrics = this.cachedLyrics.get(trackID);
-                if (newLyrics == lyrics) {
-                    this.cachedLyrics.delete(trackID);
-                }
-            }, this.config.lyrics_cache_time * 60_000);
-
-            console.error("Spotify Heroku app returned invalid format!", e, data);
-            throw new Exception(`Failed to get lyrics from Spotify for track "${track}" (<- Spotify track ID)`);
-        }
     }
 }

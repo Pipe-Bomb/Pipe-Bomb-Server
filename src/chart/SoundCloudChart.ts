@@ -1,6 +1,6 @@
 import Axios from "axios";
 import Track from "../music/Track.js";
-import SoundCloud, { getClientID } from "../service/SoundCloud.js";
+import SoundCloud, { getClientID } from "../service/SoundCloudService.js";
 import Chart from "./Chart.js";
 import ServiceManager from "../service/ServiceManager.js";
 

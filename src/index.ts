@@ -1,17 +1,18 @@
 import SQLite from "./database/SQLite.js";
 import RestAPI from "./restapi/RestAPI.js";
-import SoundCloud from "./service/SoundCloud.js";
-import YoutubeMusic from "./service/YoutubeMusic.js";
-import Youtube from "./service/Youtube.js";
+import SoundCloudService from "./service/SoundCloudService.js";
+import YoutubeMusicService from "./service/YoutubeMusicService.js";
+import YoutubeService from "./service/YoutubeService.js";
 import CollectionCache from "./collection/CollectionCache.js";
 import APIVersionV1 from "./restapi/version/V1.js";
 import UserCache from "./authentication/UserCache.js";
 import Config from "./Config.js";
 import BeatportChart from "./chart/BeatportChart.js";
 import SoundCloudChart from "./chart/SoundCloudChart.js";
-import SpotifyMetaHandler from "./SpotifyMetaHandler.js";
 import AZLyrics from "./service/AZLyrics.js";
 import DeezerLyrics from "./lyrics/DeezerLyrics.js";
+import SpotifyLyrics from "./lyrics/SpotifyLyrics.js";
+import SpotifyService from "./service/SpotifyService.js";
 
 const database = new SQLite("music.db");
 // await database.resetDatabase(); // uncomment to reset database on server start
@@ -21,13 +22,14 @@ const api = new RestAPI(Config().server_port);
 UserCache.getInstance().linkDatabase(database);
 CollectionCache.getInstance().linkDatabase(database);
 
-new YoutubeMusic();
-new SoundCloud();
-new Youtube();
+new YoutubeMusicService();
+new SoundCloudService();
+new YoutubeService();
 new AZLyrics();
+new SpotifyService();
 
-SpotifyMetaHandler.getInstance();
 new DeezerLyrics();
+new SpotifyLyrics();
 
 new BeatportChart("top-100", "beatport-top-100", "Beatport Top 100");
 new BeatportChart("genre/drum-bass/1/top-100", "beatport-dnb-top-100", "Beatport Drum & Bass Top 100");

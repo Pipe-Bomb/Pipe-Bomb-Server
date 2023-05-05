@@ -67,15 +67,16 @@ export function stripNonAlphanumeric(input: string, allowSpaces: boolean) {
 export function removeDuplicates<Type>(items: Type[], matchProperty?: (item: Type) => any) {
     if (matchProperty) {
         const existingMatchProperties: any[] = [];
+        const newList: Type[] = [];
     
         for (let item of items) {
             const itemMatchProp = matchProperty(item);
-            if (existingMatchProperties.includes(itemMatchProp)) {
-                items.splice(items.indexOf(item), 1);
-                continue;
+            if (!existingMatchProperties.includes(itemMatchProp)) {
+                existingMatchProperties.push(itemMatchProp);
+                newList.push(item);
             }
-            existingMatchProperties.push(itemMatchProp);
         }
+        items.splice(0, items.length, ...newList);
     } else {
         const newList: Type[] = [];
         for (let item of items) {

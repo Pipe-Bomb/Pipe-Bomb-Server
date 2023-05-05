@@ -1,20 +1,26 @@
 import { removeDuplicates } from "../Utils.js";
-import Collection from "../collection/Collection.js";
 import ExternalCollection from "../collection/ExternalCollection.js";
 import Track from "../music/Track.js";
 import APIResponse from "../response/APIResponse.js";
 import Exception from "../response/Exception.js";
 import ServiceManager from "./ServiceManager.js";
 import StreamInfo from "./StreamInfo.js";
-import StreamingService from "./StreamingService.js";
+import StreamingService, { SearchOptions, UrlType } from "./StreamingService.js";
 import Axios from "axios";
 
 export default class AZLyrics extends StreamingService {
     public constructor() {
-        super("AZLyrics", "az");
+        super("AZLyrics", "az", {
+            tracks: false,
+            playlists: false
+        });
     }
 
-    public async search(query: string, page?: number): Promise<Track[]> {
+    public async convertUrl(url: string): Promise<UrlType> {
+        return null;
+    }
+
+    public async search(query: string, types: SearchOptions[], page?: number): Promise<Track[]> {
         try {
             const { data } = await Axios.get(`https://search.azlyrics.com/suggest.php?q=${encodeURIComponent(query)}&x=71eef200fd95acba541eb752c51aa98edbf44ea340f9ea934383c0006d5b465f`);
 

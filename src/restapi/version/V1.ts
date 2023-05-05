@@ -132,12 +132,23 @@ export default class APIVersionV1 extends APIVersion {
 
 
 
-        this.createRoute("get", "/externalplaylists/:playlist_id", false, async requestInfo => {
+        this.createRoute("get", "/externalplaylists/:playlist_id", true, async requestInfo => {
             const externalPlaylist = await ServiceManager.getInstance().getExternalCollection("playlist", requestInfo.parameters.playlist_id);
             return new APIResponse(200, externalPlaylist.toJson());
         });
 
-        this.createRoute("get", "/externalplaylists/:playlist_id/:page", false, async requestInfo => {
+        this.createRoute("get", "/externalplaylists/:playlist_id/thumbnail", false, async requestInfo => {
+            const externalPlaylist = await ServiceManager.getInstance().getExternalCollection("playlist", requestInfo.parameters.playlist_id);
+            if (!externalPlaylist.artworkUrl) return new APIResponse(206, null);
+            const stream = await Axios.get(externalPlaylist.artworkUrl, {
+                responseType: "stream"
+            });
+            return new APIResponse(200, stream.data, {
+                cacheTime: 3600
+            });
+        });
+
+        this.createRoute("get", "/externalplaylists/:playlist_id/page/:page", true, async requestInfo => {
             const externalPlaylist = await ServiceManager.getInstance().getExternalCollection("playlist", requestInfo.parameters.playlist_id);
             if (isNaN(parseInt(requestInfo.parameters.page))) {
                 throw new APIResponse(400, `'${requestInfo.parameters.page}' is not a valid page number`);
@@ -151,9 +162,23 @@ export default class APIVersionV1 extends APIVersion {
 
 
         this.createRoute("post", "/search", true, async requestInfo => { // search for tracks
+            const query: string = requestInfo.body.query;
+            if (query.startsWith("http://") || query.startsWith("https://")) {
+                const urlConversion = await ServiceManager.getInstance().convertUrl(query.split("//", 2)[1]);
+                if (urlConversion) {
+                    return new APIResponse(200, {
+                        type: "object found",
+                        urlConversion
+                    });
+                }
+            }
+
+
             const service = ServiceManager.getInstance().getService(requestInfo.body.service);
-            const search = await service.search(requestInfo.body.query);
-            return new APIResponse(200, search.map(item => {
+            const search = await service.search(requestInfo.body.query, ["tracks", "playlists", "albums"]);
+            return new APIResponse(200, {
+                type: "search results",
+                items: search.map(item => {
                 if (item instanceof ExternalCollection) {
                     return item.toJson();
                 }
@@ -161,7 +186,8 @@ export default class APIVersionV1 extends APIVersion {
                     type: "track",
                     ...item
                 };
-            }));
+            })
+            });
         });
         
 

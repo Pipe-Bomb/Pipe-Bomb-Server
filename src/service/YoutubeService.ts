@@ -3,19 +3,36 @@ import YTDL from "ytdl-core"
 
 import Track from "../music/Track.js";
 import Exception from "../response/Exception.js";
-import StreamingService from "./StreamingService.js";
+import StreamingService, { SearchOptions, UrlType } from "./StreamingService.js";
 import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
 import Axios from "axios";
 import { removeDuplicates, removeItems } from "../Utils.js";
 import ExternalCollection from "../collection/ExternalCollection.js";
 
-export default class Youtube extends StreamingService {
+export default class YoutubeService extends StreamingService {
     constructor() {
-        super("Youtube", "yt");
+        super("Youtube", "yt", {
+            tracks: true,
+            playlists: false
+        });
     }
 
-    public async search(query: string, page?: number): Promise<Track[]> {
+    public async convertUrl(url: string): Promise<UrlType> {
+        if (url.startsWith("youtube.com/watch?v=") || url.startsWith("youtu.be/")) { // track detected
+            let id = url.split("=", 2)[1];
+            if (id.includes("&")) {
+                id = id.split("&")[0];
+            }
+            return {
+                type: "track",
+                id: "yt-" + id
+            }
+        }
+        return null;
+    }
+
+    public async search(query: string, types: SearchOptions[], page?: number): Promise<Track[]> {
         try {
             const results = await YTSR(query);
 
@@ -119,9 +136,6 @@ export default class Youtube extends StreamingService {
 
             let details: any = data.videoDetails;
             details.id = data.videoDetails.videoId;
-
-            console.log("yt duration seconds:", data.videoDetails.lengthSeconds);
-            console.log("ytdl upload:", data.videoDetails.uploadDate);
 
             return new Track(`yt-${data.videoDetails.videoId}`, {
                 title: data.videoDetails.title,

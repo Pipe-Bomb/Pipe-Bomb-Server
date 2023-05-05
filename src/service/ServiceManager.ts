@@ -1,7 +1,7 @@
 import Track from "../music/Track.js";
 import APIResponse from "../response/APIResponse.js";
 import Exception from "../response/Exception.js";
-import StreamingService from "./StreamingService.js";
+import StreamingService, { UrlType } from "./StreamingService.js";
 import Config from "../Config.js";
 import StreamInfo from "./StreamInfo.js";
 import PartialContentInfo from "../restapi/PartialContentInfo.js";
@@ -174,7 +174,7 @@ export default class ServiceManager {
             function lookup(index: number, trackName: string) {
                 trackInfoLookups.mark();
 
-                service.search(trackName)
+                service.search(trackName, ["tracks"])
                 .then(results => {
                     for (let item of results) {
                         if (item instanceof Track) {
@@ -278,5 +278,14 @@ export default class ServiceManager {
         }
         console.log("Giving up on finding track", trackID);
         return new APIResponse(503, "Refused by service");
+    }
+
+    public async convertUrl(url: string): Promise<UrlType | null> {
+        const services = this.services.values();
+        for (let service of services) {
+            const response = await service.convertUrl(url);
+            if (response) return response;
+        }
+        return null;
     }
 }
