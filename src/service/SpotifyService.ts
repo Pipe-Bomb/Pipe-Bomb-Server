@@ -19,6 +19,7 @@ export default class SpotifyService extends StreamingService {
 
     public async convertUrl(url: string): Promise<UrlType> {
         if (!url.startsWith("open.spotify.com/")) return null;
+        if (this.spotify.isDisabled()) return null;
 
         if (url.includes("?")) url = url.split("?")[0];
         const split = url.split("/");
