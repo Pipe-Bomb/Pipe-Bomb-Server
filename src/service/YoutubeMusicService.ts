@@ -103,7 +103,13 @@ export default class YoutubeMusicService extends StreamingService {
                     async function doPlaylist(playlist: YTM.PlaylistPreview) {
                         try {
                             const tracks = await YTM.listMusicsFromPlaylist(playlist.playlistId);
-                            const tracklist = tracks.map(track => link.convertJsonToTrack(track));
+                            const tracklist: Track[] = [];
+                            for (let trackData of tracks) {
+                                if (trackData.youtubeId) {
+                                    tracklist.push(link.convertJsonToTrack(trackData));
+                                }
+                            }
+                            
                             const collection = new ExternalCollection("playlist", link, "ym-" + playlist.playlistId, playlist.title, Date.now(), tracklist, playlist.thumbnailUrl);
                             out.push(collection);
                         } finally {
@@ -187,7 +193,9 @@ export default class YoutubeMusicService extends StreamingService {
             const out: Track[] = [];
 
             results.forEach(data => {
-                out.push(this.convertJsonToTrack(data));
+                if (data.youtubeId) {
+                    out.push(this.convertJsonToTrack(data));
+                }
             });
 
             removeDuplicates(out, track => track.trackID);
@@ -221,7 +229,6 @@ export default class YoutubeMusicService extends StreamingService {
                 } else {
                     thumbnail = trackData.thumbnails?.url || null;
                 }
-                console.log("2", trackData.videoId);
                 tracklist.push(new Track(`ym-${trackData.videoId}`, {
                     title: trackData.name,
                     artists: [trackData.author.name],

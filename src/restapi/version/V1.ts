@@ -168,7 +168,7 @@ export default class APIVersionV1 extends APIVersion {
                 if (urlConversion) {
                     return new APIResponse(200, {
                         type: "object found",
-                        urlConversion
+                        object: urlConversion
                     });
                 }
             }

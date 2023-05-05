@@ -69,7 +69,7 @@ export default class SoundCloudService extends StreamingService {
         if (split.length == 3 && split[1] == "sets") { // playlist detected
             try {
                 await getClientID();
-                const playlist = await SCDL.playlists.getPlaylist("https://soundcloud.com/" + split[0] + "/sets/" + split[1]);
+                const playlist = await SCDL.playlists.getPlaylist("https://soundcloud.com/" + split[0] + "/sets/" + split[2]);
                 return {
                     type: "playlist",
                     id: "sc-" + playlist.id
