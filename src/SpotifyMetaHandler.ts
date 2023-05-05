@@ -11,6 +11,7 @@ export default class SpotifyMetaHandler {
 
     private spotify: SpotifyWebApi = null;
     private authenticated = false;
+    private disabled = false;
     private readonly config: ConfigTemplate;
     private cachedConversions: Map<string, SpotifyApi.TrackObjectFull> = new Map();
 
@@ -26,6 +27,7 @@ export default class SpotifyMetaHandler {
         if (!this.config.spotify_client_id || !this.config.spotify_client_secret) {
             console.log("Spotify credentials not provided, lyrics won't be available.");
             console.log("Create a Spotify application to get the required credentials https://developer.spotify.com/dashboard");
+            this.disabled = true;
             return;
         }
 
@@ -37,10 +39,14 @@ export default class SpotifyMetaHandler {
         this.getAccessToken();
     }
 
+    public isDisabled() {
+        return this.disabled;
+    }
+
     private async waitForAuth() {
         return new Promise<void>(async (resolve, reject) => {
-            if (!this.config.spotify_client_id || !this.config.spotify_client_secret) {
-                reject(new APIResponse(503, "Spotify related features are not available on this Pipe Bomb server."));
+            if (!this.disabled) {
+                return reject(new APIResponse(503, "Spotify related features are not available on this Pipe Bomb server."));
             }
             while (!this.authenticated) {
                 await wait(100);

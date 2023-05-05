@@ -5,7 +5,8 @@ import StreamInfo from "./StreamInfo.js";
 
 export interface StreamingServiceFeatures {
     tracks: boolean,
-    playlists: boolean
+    playlists: boolean,
+    search: boolean
 }
 
 export interface UrlType {

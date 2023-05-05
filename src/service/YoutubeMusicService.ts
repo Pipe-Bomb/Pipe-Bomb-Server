@@ -31,7 +31,8 @@ export default class YoutubeMusicService extends StreamingService {
     constructor() {
         super("Youtube Music", "ym", {
             tracks: true,
-            playlists: true
+            playlists: true,
+            search: true
         });
     }
 

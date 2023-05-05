@@ -39,10 +39,13 @@ export default class APIVersionV1 extends APIVersion {
             const out: Service[] = [];
 
             for (let service of services) {
-                out.push({
-                    name: service,
-                    prefix: serviceManager.getService(service).prefix
-                });
+                const serviceObject = serviceManager.getService(service);
+                if (serviceObject.getFeatures().search) {
+                    out.push({
+                        name: service,
+                        prefix: serviceManager.getService(service).prefix
+                    });
+                }
             }
 
             return new APIResponse(200, out);

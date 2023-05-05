@@ -12,7 +12,8 @@ export default class AZLyrics extends StreamingService {
     public constructor() {
         super("AZLyrics", "az", {
             tracks: false,
-            playlists: false
+            playlists: false,
+            search: true
         });
     }
 

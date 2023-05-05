@@ -12,7 +12,8 @@ export default class SpotifyService extends StreamingService {
     public constructor() {
         super("Spotify", "sp", {
             tracks: false,
-            playlists: true
+            playlists: true,
+            search: !SpotifyMetaHandler.getInstance().isDisabled()
         });
     }
 

@@ -14,7 +14,8 @@ export default class YoutubeService extends StreamingService {
     constructor() {
         super("Youtube", "yt", {
             tracks: true,
-            playlists: false
+            playlists: false,
+            search: true
         });
     }
 

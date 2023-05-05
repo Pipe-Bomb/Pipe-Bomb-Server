@@ -42,7 +42,8 @@ export default class SoundCloudService extends StreamingService {
     constructor() {
         super("SoundCloud", "sc", {
             tracks: true,
-            playlists: true
+            playlists: true,
+            search: true
         });
     }
 
