@@ -45,7 +45,7 @@ export default class SpotifyMetaHandler {
 
     private async waitForAuth() {
         return new Promise<void>(async (resolve, reject) => {
-            if (!this.disabled) {
+            if (this.disabled) {
                 return reject(new APIResponse(503, "Spotify related features are not available on this Pipe Bomb server."));
             }
             while (!this.authenticated) {
