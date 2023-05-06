@@ -230,9 +230,19 @@ export default class YoutubeMusicService extends StreamingService {
                 } else {
                     thumbnail = trackData.thumbnails?.url || null;
                 }
+
+                const artists: string[] = [];
+                if (Array.isArray(trackData.author)) {
+                    for (let artist of trackData.author) {
+                        artists.push(artist.name);
+                    }
+                } else {
+                    artists.push(trackData.author.name);
+                }
+
                 tracklist.push(new Track(`ym-${trackData.videoId}`, {
                     title: trackData.name,
-                    artists: [trackData.author.name],
+                    artists: artists,
                     image: thumbnail,
                     duration: trackData.duration / 1000,
                     originalUrl: "https://music.youtube.com/watch?v=" + trackData.videoId
