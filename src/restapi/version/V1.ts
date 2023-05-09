@@ -13,6 +13,7 @@ import Axios from "axios";
 import LyricsManager from "../../lyrics/LyricsManager.js";
 import UserCache from "../../authentication/UserCache.js";
 import ExternalCollection from "../../collection/ExternalCollection.js";
+import RegistryConnectionsIndex from "../../RegistryConnectionsIndex.js";
 
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI: RestAPI) {
@@ -24,6 +25,14 @@ export default class APIVersionV1 extends APIVersion {
                 pipeBombServer: true,
                 name: config.server_name
             });
+        });
+
+        this.createRoute("post", "/registryconnect", false, async requestInfo => {
+            const identifier: string = requestInfo.body?.identifier;
+            if (!identifier || typeof identifier != "string") throw new APIResponse(400, "Missing identifier");
+
+            const response = RegistryConnectionsIndex.getInstance().getResponse(identifier);
+            return new APIResponse(200, response);
         });
 
 

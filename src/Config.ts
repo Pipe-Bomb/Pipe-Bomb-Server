@@ -6,6 +6,8 @@ console.log("Loading config...");
 export interface ConfigTemplate {
     server_port: number,
     server_name: string,
+    server_address: string,
+    server_registry_urls: string[],
     collection_cache_time: number,
     external_collection_cache_time: number,
     user_cache_time: number,
@@ -24,6 +26,8 @@ const defaultConfig: ConfigTemplate = {
         format: "title",
         partsOfSpeech: ["adjective", "adjective"]
     }) + " Pipe Bomb",
+    server_address: "127.0.0.1",
+    server_registry_urls: ["https://registry.pipebomb.net"],
     collection_cache_time: 60,
     external_collection_cache_time: 60,
     user_cache_time: 60,

@@ -13,6 +13,7 @@ import AZLyrics from "./service/AZLyrics.js";
 import DeezerLyrics from "./lyrics/DeezerLyrics.js";
 import SpotifyLyrics from "./lyrics/SpotifyLyrics.js";
 import SpotifyService from "./service/SpotifyService.js";
+import RegistryConnectionsIndex from "./RegistryConnectionsIndex.js";
 
 const database = new SQLite("music.db");
 // await database.resetDatabase(); // uncomment to reset database on server start
@@ -71,3 +72,4 @@ new SoundCloudChart("charts-top:triphop", "soundcloud-top-50-triphop", "SoundClo
 new APIVersionV1(api);
 
 api.start();
+RegistryConnectionsIndex.getInstance();
