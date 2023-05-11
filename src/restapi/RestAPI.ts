@@ -9,6 +9,7 @@ import Config from "../Config.js";
 import { Stream } from "stream";
 import PartialContentInfo from "./PartialContentInfo.js";
 import Pmx from "pmx";
+import UrlRoutes from "../UrlRoutes.js";
 
 const probe = Pmx.probe();
 
@@ -22,11 +23,14 @@ export default class RestAPI {
     public readonly express = Express();
     private started = false;
     private starting = false;
+    private urlRoutes: UrlRoutes;
 
     constructor(port: number) {
         this.port = port;
         this.express.use(Cors());
         this.express.use(Express.json());
+
+        this.urlRoutes = new UrlRoutes(this);
     }
 
     public start(): this {

@@ -17,7 +17,8 @@ export interface ConfigTemplate {
     spotify_track_conversion_cache_time: number,
     spotify_client_id: string,
     spotify_client_secret: string,
-    lyrics_source_hierarchy: string[]
+    lyrics_source_hierarchy: string[],
+    url_open_proxy: string
 }
 
 const defaultConfig: ConfigTemplate = {
@@ -37,7 +38,8 @@ const defaultConfig: ConfigTemplate = {
     lyrics_cache_time: 60,
     spotify_client_id: "",
     spotify_client_secret: "",
-    lyrics_source_hierarchy: ["deezer", "spotify"]
+    lyrics_source_hierarchy: ["deezer", "spotify"],
+    url_open_proxy: "https://open.pipebomb.net"
 }
 
 let Config: ConfigTemplate;
