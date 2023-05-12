@@ -50,7 +50,7 @@ export default class UrlRoutes {
             const externalPlaylist = await ServiceManager.getInstance().getExternalCollection("playlist", id);
             return {
                 title: externalPlaylist.name,
-                subtitle: "From " + externalPlaylist.service,
+                subtitle: "From " + externalPlaylist.service.name,
                 image: `/v1/externalplaylists/${externalPlaylist.collectionID}/thumbnail`
             }
         });
