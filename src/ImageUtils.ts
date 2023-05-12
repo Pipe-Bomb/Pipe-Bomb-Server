@@ -28,6 +28,7 @@ export async function generateImageFromTracklist(tracks: Track[]) {
     if (!images.length) return null;
 
     if (images.length < 4) {
+        images[0].resize(500, 500);
         return await images[0].getBufferAsync(Jimp.MIME_JPEG);
     }
 
