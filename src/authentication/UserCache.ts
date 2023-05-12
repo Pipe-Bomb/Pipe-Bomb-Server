@@ -3,6 +3,7 @@ import Database from "../database/Database.js";
 
 import APIResponse from "../response/APIResponse.js";
 import User from "./User.js";
+import { generateHash } from "../Utils.js";
 
 export default class UserCache {
     private static instance: UserCache = null;
@@ -77,5 +78,11 @@ export default class UserCache {
             console.error(`Couldn't add user '${user.userID}' to user cache`, e);
         }
         return user;
+    }
+
+    public static getAvatarUrl(userID: string) {
+        const value = generateHash(userID)();
+        const imageID = Math.floor(value * 100001);
+        return `https://www.thiswaifudoesnotexist.net/example-${imageID}.jpg`;
     }
 }

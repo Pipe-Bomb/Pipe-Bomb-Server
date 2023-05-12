@@ -1,7 +1,8 @@
 import Exception from "./Exception.js";
 
 export interface APIResponseOptions {
-    cacheTime?: number
+    cacheTime?: number,
+    type?: string
 }
 
 export default class APIResponse {

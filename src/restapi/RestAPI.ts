@@ -78,7 +78,9 @@ export default class RestAPI {
                     body: req.body,
                     user,
                     endpoint: req.url,
-                    headers: req.headers
+                    headers: req.headers,
+                    protocol: req.protocol,
+                    address: req.get("host")
                 };
 
                 callbackResponse = await callback(requestInfo);
@@ -152,6 +154,9 @@ export default class RestAPI {
 
             if (callbackResponse.response instanceof Stream) {
                 callbackResponse.response.pipe(res);
+            } else if (callbackResponse.options?.type) {
+                res.type(callbackResponse.options.type);
+                res.send(callbackResponse.response);
             } else {
                 res.send({
                     processTime: callbackResponse.processTime,

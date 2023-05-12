@@ -8,5 +8,7 @@ export default interface RequestInfo {
     body: any,
     user: User,
     endpoint: string,
-    headers: IncomingHttpHeaders
+    headers: IncomingHttpHeaders,
+    address: string,
+    protocol: string
 }

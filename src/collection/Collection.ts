@@ -153,6 +153,10 @@ export default class Collection {
         });
     }
 
+    public getName() {
+        return this.name;
+    }
+
     public toJson() {
         return {
             collectionID: this.collectionID,
