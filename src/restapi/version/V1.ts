@@ -14,6 +14,7 @@ import LyricsManager from "../../lyrics/LyricsManager.js";
 import UserCache from "../../authentication/UserCache.js";
 import ExternalCollection from "../../collection/ExternalCollection.js";
 import RegistryConnectionsIndex from "../../RegistryConnectionsIndex.js";
+import { generateImageFromTracklist } from "../../ImageUtils.js";
 
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI: RestAPI) {
@@ -97,6 +98,16 @@ export default class APIVersionV1 extends APIVersion {
             const collection = await this.getCollectionFromRequestInfo(requestInfo);
             const suggestions = await collection.getSuggestedTracks();
             return new APIResponse(200, suggestions);
+        });
+
+        this.createRoute("get", "/playlists/:playlist_id/thumbnail", false, async requestInfo => {
+            const collection = await this.getCollectionFromRequestInfo(requestInfo);
+            const image = await generateImageFromTracklist(collection.getTracklist());
+            if (!image) return new APIResponse(206, "No content");
+            return new APIResponse(200, image, {
+                type: "jpeg",
+                cacheTime: 3600
+            });
         });
         
 
@@ -265,6 +276,17 @@ export default class APIVersionV1 extends APIVersion {
                 trackList: await chart.getTracks()
             }, {
                 cacheTime: 300
+            });
+        });
+
+        this.createRoute("get", "/charts/:chart_id/thumbnail", false, async requestInfo => {
+            const chartManager = ChartManager.getInstance();
+            const chart = chartManager.getChart(requestInfo.parameters.chart_id);
+            const image = await generateImageFromTracklist(await chart.getTracks());
+            if (!image) return new APIResponse(206, "No content");
+            return new APIResponse(200, image, {
+                type: "jpeg",
+                cacheTime: 3600
             });
         });
 

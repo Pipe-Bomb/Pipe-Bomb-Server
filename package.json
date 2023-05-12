@@ -28,6 +28,7 @@
     "better-sqlite3": "^8.1.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "jimp": "^0.22.8",
     "node-youtube-music": "^0.10.2",
     "pmx": "^1.6.7",
     "random-word-slugs": "^0.1.6",

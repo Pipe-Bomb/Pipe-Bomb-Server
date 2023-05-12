@@ -41,7 +41,8 @@ export default class UrlRoutes {
             const chart = ChartManager.getInstance().getChart(id);
             return {
                 title: chart.getName(),
-                subtitle: "From " + chart.service
+                subtitle: "From " + chart.service,
+                image: `/v1/charts/${chart.getSlug()}/thumbnail`
             }
         });
 
@@ -58,7 +59,8 @@ export default class UrlRoutes {
             const collection = await CollectionCache.getInstance().getCollection(id, true);
             return {
                 title: collection.getName(),
-                subtitle: "By " + collection.owner.username
+                subtitle: "By " + collection.owner.username,
+                image: `/v1/playlists/${collection.collectionID}/thumbnail`
             }
         });
     }

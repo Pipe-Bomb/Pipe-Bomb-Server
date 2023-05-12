@@ -157,6 +157,10 @@ export default class Collection {
         return this.name;
     }
 
+    public getTracklist() {
+        return Array.from(this.trackList);
+    }
+
     public toJson() {
         return {
             collectionID: this.collectionID,
