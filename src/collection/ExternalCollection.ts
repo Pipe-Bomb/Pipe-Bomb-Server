@@ -21,7 +21,7 @@ export default class ExternalCollection {
         const pageSize = 10;
         const maxPage = Math.floor(this.trackList.length / pageSize);
 
-        if (page < 0) page = 0;
+        if (page < 0 || page === undefined) page = 0;
         const startIndex = page * pageSize;
         const endIndex = Math.min((page + 1) * pageSize, this.trackList.length) - 1;
         if (startIndex > endIndex) throw new APIResponse(400, `Tracklist is only ${maxPage} page${maxPage + 1 ? "s" : ""} long`);

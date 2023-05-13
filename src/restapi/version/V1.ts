@@ -14,7 +14,7 @@ import LyricsManager from "../../lyrics/LyricsManager.js";
 import UserCache from "../../authentication/UserCache.js";
 import ExternalCollection from "../../collection/ExternalCollection.js";
 import RegistryConnectionsIndex from "../../RegistryConnectionsIndex.js";
-import { generateImageFromTracklist } from "../../ImageUtils.js";
+import { cropImage, generateImageFromTracklist } from "../../ImageUtils.js";
 
 export default class APIVersionV1 extends APIVersion {
     constructor(restAPI: RestAPI) {
@@ -162,13 +162,25 @@ export default class APIVersionV1 extends APIVersion {
 
         this.createRoute("get", "/externalplaylists/:playlist_id/thumbnail", false, async requestInfo => {
             const externalPlaylist = await ServiceManager.getInstance().getExternalCollection("playlist", requestInfo.parameters.playlist_id);
-            if (!externalPlaylist.artworkUrl) return new APIResponse(206, null);
-            const stream = await Axios.get(externalPlaylist.artworkUrl, {
-                responseType: "stream"
-            });
-            return new APIResponse(200, stream.data, {
-                cacheTime: 3600
-            });
+            
+            
+            try {
+                if (!externalPlaylist.artworkUrl) throw "no artwork";
+                const image = await cropImage(externalPlaylist.artworkUrl);
+                if (!image) throw "no artwork";
+
+                return new APIResponse(200, image, {
+                    type: "jpeg",
+                    cacheTime: 3600
+                });
+            } catch {
+                const image = await generateImageFromTracklist(await externalPlaylist.getTracklist());
+                if (!image) return new APIResponse(206, "No content");
+                return new APIResponse(200, image, {
+                    type: "jpeg",
+                    cacheTime: 3600
+                });
+            }
         });
 
         this.createRoute("get", "/externalplaylists/:playlist_id/page/:page", true, async requestInfo => {
@@ -248,11 +260,13 @@ export default class APIVersionV1 extends APIVersion {
             const serviceManager = ServiceManager.getInstance();
             const track = await serviceManager.getTrackInfo(requestInfo.parameters.track_id);
             if (!track.metadata?.image) return new APIResponse(206, null);
-            const stream = await Axios.get(track.metadata.image, {
-                responseType: "stream"
-            });
-            return new APIResponse(200, stream.data, {
-                cacheTime: 3600
+            
+            const image = await cropImage(track.metadata.image);
+            if (!image) return new APIResponse(206, null);
+
+            return new APIResponse(200, image, {
+                cacheTime: 3600,
+                type: "jpeg"
             });
         });
 
@@ -283,9 +297,17 @@ export default class APIVersionV1 extends APIVersion {
             const chartManager = ChartManager.getInstance();
             const chart = chartManager.getChart(requestInfo.parameters.chart_id);
             const image = await generateImageFromTracklist(await chart.getTracks());
-            if (!image) return new APIResponse(206, "No content");
-            return new APIResponse(200, image, {
+            if (image) return new APIResponse(200, image, {
                 type: "jpeg",
+                cacheTime: 3600
+            });
+
+            const filePath = Path.join(DIRNAME, "..", "assets", "services", `${stripNonAlphanumeric(chart.service, true)}.png`);
+            if (!FS.existsSync(filePath)) {
+                return new APIResponse(404, `'${chart.service}' is not a valid service`);
+            }
+
+            return new APIResponse(200, FS.createReadStream(filePath), {
                 cacheTime: 3600
             });
         });

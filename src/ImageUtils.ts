@@ -1,6 +1,28 @@
 import Axios from "axios";
 import Track from "./music/Track.js";
 import Jimp from "jimp";
+import Sharp from "sharp";
+
+export async function getImageBuffer(url: string): Promise<Buffer> {
+    try {
+        const data = await Axios.get(url, {
+            responseType: "arraybuffer"
+        });
+        const type = data.headers["content-type"];
+        const parts = type.split("/");
+        if (parts.length != 2 || parts[0] != "image") throw "invalid content type";
+
+        if (!["png", "jpeg", "bmp", "tiff", "gif"].includes(parts[1])) {
+            console.log("image needs converting!", parts[1]);
+            const buffer = await Sharp(data.data).toFormat("jpg").toBuffer();
+            return buffer;
+        }
+
+        return data.data;
+    } catch {
+        throw `Failed to get image at url '${url}'`;
+    }
+}
 
 export async function generateImageFromTracklist(tracks: Track[]) {
     let images: Jimp[] = [];
@@ -8,9 +30,7 @@ export async function generateImageFromTracklist(tracks: Track[]) {
         if (!track.metadata?.image) continue;
 
         try {
-            const { data } = await Axios.get(track.metadata?.image, {
-                responseType: "arraybuffer"
-            });
+            const data = await getImageBuffer(track.metadata.image);
             const image = await Jimp.read(data);
 
             const width = image.getWidth();
@@ -42,4 +62,30 @@ export async function generateImageFromTracklist(tracks: Track[]) {
     out.composite(images[2], 0, 250);
     out.composite(images[3], 250, 250);
     return await out.getBufferAsync(Jimp.MIME_JPEG);
+}
+
+export async function cropImage(image: Buffer | string, scaleTo500?: boolean) {
+    let buffer: Buffer;
+    if (typeof image == "string") {
+        try {
+            buffer = await getImageBuffer(image);
+        } catch {
+            return null;
+        }
+    } else {
+        buffer = image;
+    }
+
+    const jimp = await Jimp.read(buffer);
+    const width = jimp.getWidth();
+    const height = jimp.getHeight();
+    if (width != height) {
+        const size = Math.min(width, height);
+        jimp.cover(size, size);
+    }
+
+    if (scaleTo500) {
+        jimp.resize(500, 500);
+    }
+    return await jimp.getBufferAsync(Jimp.MIME_JPEG);
 }

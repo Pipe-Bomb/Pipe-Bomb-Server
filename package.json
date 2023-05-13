@@ -33,6 +33,7 @@
     "pmx": "^1.6.7",
     "random-word-slugs": "^0.1.6",
     "scdl-core": "^1.1.0",
+    "sharp": "^0.32.1",
     "spotify-web-api-node": "^5.0.2",
     "youtube-music-api": "github:Pipe-Bomb/Youtube-Music-API",
     "yt-search": "^2.10.4",

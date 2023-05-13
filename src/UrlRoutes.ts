@@ -74,10 +74,6 @@ export default class UrlRoutes {
             let data: UrlInfo = null;
             try {
                 data = await infoCallback(id);
-                // if (data.image && data.image.startsWith("/")) {
-                //     while (data.image.startsWith("/")) data.image = data.image.substring(1);
-                //     data.image = `${requestInfo.protocol}://${requestInfo.address}/${data.image}`;
-                // }
             } finally {
                 const title = data?.title ? (data.title + " - Pipe Bomb") : this.config.server_name;
                 const description = data?.subtitle ? data.subtitle : "";
