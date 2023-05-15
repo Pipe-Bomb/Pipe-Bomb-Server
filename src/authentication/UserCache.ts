@@ -6,6 +6,8 @@ import User from "./User.js";
 import { generateHash } from "../Utils.js";
 import { randomBytes } from "crypto";
 import JWT from "jsonwebtoken";
+import FS from "fs";
+import Path from "path";
 
 export default class UserCache {
     private static instance: UserCache = null;
@@ -13,9 +15,35 @@ export default class UserCache {
     private database: Database;
     private users: Map<string, User> = new Map();
     private secretsCache: Map<string, string> = new Map();
+    private jwtSecret: string;
 
     private constructor() {
         console.log("Created user cache");
+
+        if (!FS.existsSync(".secrets")) {
+            console.log("Creating secrets directory...");
+            FS.mkdirSync(".secrets");
+            console.log("Created secrets directory!");
+        }
+
+        try {
+            const fileSecret = FS.readFileSync(Path.join(".secrets", "jwt.txt")).toString("utf-8");
+            if (!fileSecret) throw "unset";
+            this.jwtSecret = fileSecret;
+            console.log("Loaded JWT secret!");
+        } catch {
+            console.log("Creating new JWT secret...");
+            let secret: string;
+            do {
+                const length = 900 + Math.floor(Math.random() * 100);
+                const rawSecret = randomBytes(length).toString("base64");
+                secret = rawSecret.match(/.{1,50}/g)?.join("\n");
+            } while (!secret);
+            FS.writeFileSync(Path.join(".secrets", "jwt.txt"), secret);
+            this.jwtSecret = secret;
+            console.log("Created new JWT secret!");
+        }
+        
     }
 
     public static getInstance(): UserCache {
@@ -58,7 +86,7 @@ export default class UserCache {
         if (!jwt) throw new APIResponse(401, "JWT is required");
 
         return new Promise((resolve, reject) => {
-            JWT.verify(jwt, "secretKey", async (err, decoded) => {
+            JWT.verify(jwt, this.jwtSecret, async (err, decoded) => {
                 if (err) return reject(new APIResponse(401, "Invalid JWT"));
 
                 const anyID: any = decoded.sub;
@@ -114,7 +142,7 @@ export default class UserCache {
 
         const token = JWT.sign({
             sub: userID
-        }, "secretKey", {
+        }, this.jwtSecret, {
             expiresIn: "30d"
         });
         return token;
