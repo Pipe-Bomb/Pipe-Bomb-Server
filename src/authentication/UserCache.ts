@@ -1,16 +1,18 @@
-import Axios from "axios";
+import Cryptico from "cryptico";
 import Database from "../database/Database.js";
 
 import APIResponse from "../response/APIResponse.js";
 import User from "./User.js";
 import { generateHash } from "../Utils.js";
+import { randomBytes } from "crypto";
+import JWT from "jsonwebtoken";
 
 export default class UserCache {
     private static instance: UserCache = null;
 
     private database: Database;
     private users: Map<string, User> = new Map();
-    private tokenMap: Map<string, string> = new Map();
+    private secretsCache: Map<string, string> = new Map();
 
     private constructor() {
         console.log("Created user cache");
@@ -31,12 +33,6 @@ export default class UserCache {
             user = user.userID;
         }
         this.users.delete(user);
-
-        this.tokenMap.forEach((value, key) => {
-            if (value == user) {
-                this.tokenMap.delete(key);
-            }
-        });
     }
 
     public async getUserByID(userID: string): Promise<User> {
@@ -48,7 +44,7 @@ export default class UserCache {
         try {
             const cache = await this.database.runQuery("SELECT * FROM users WHERE user_id = ?", [userID]);
             if (cache.length) {
-                const user = new User(cache[0].user_id, cache[0].email, cache[0].username, (user) => this.removeUserFromCache(user));
+                const user = new User(cache[0].user_id, cache[0].username, (user) => this.removeUserFromCache(user));
                 this.users.set(user.userID, user);
                 return user;
             }
@@ -58,26 +54,70 @@ export default class UserCache {
         return null;
     }
 
-    public async getUserByToken(token: string): Promise<User> {
-        if (!token) throw new APIResponse(401, "Access token is required");
-        let userID = this.tokenMap.get(token);
-        if (userID) return await this.getUserByID(userID);
+    public async getUserByToken(jwt: string): Promise<User> {
+        if (!jwt) throw new APIResponse(401, "JWT is required");
+
+        return new Promise((resolve, reject) => {
+            JWT.verify(jwt, "secretKey", async (err, decoded) => {
+                if (err) return reject(new APIResponse(401, "Invalid JWT"));
+
+                const anyID: any = decoded.sub;
+                const userID: string = anyID;
+
+                let user = await this.getUserByID(userID);
+                if (user) return resolve(user);
+
+                reject(new APIResponse(401, `Invalid JWT`));
+            });
+        });
+    }
+
+    public generateAuthenticationSecret(userID: string, publicKey: string): string {
+        const generatedUserID: string = Cryptico.publicKeyID(publicKey);
+        if (generatedUserID != userID) throw new APIResponse(401, "user ID and public key don't match");
+
+        let secret: string;
+        do {
+            secret = randomBytes(300).toString("base64");
+        } while (this.secretsCache.has(secret));
+
+        const encrypted = Cryptico.encrypt(secret, publicKey);
+        if (encrypted.status != "success") throw `Failed to encrypt secret`;
         
-        const response = (await Axios.get(`https://eyezah.com/authenticate/api/get-user?token=${token}`)).data;
-        if (!response.id) {
-            throw new APIResponse(401, "Invalid access token");
+        this.secretsCache.set(secret, generatedUserID);
+        setTimeout(() => {
+            this.secretsCache.delete(secret);
+        }, 300_000);
+        return encrypted.cipher;
+    }
+
+    public verifyAuthenticationSecret(userID: string, secret: string) {
+        const verifiedID = this.secretsCache.get(secret);
+        return verifiedID && verifiedID == userID
+    }
+
+    public async generateJWT(userID: string, username?: string) {
+        if (username) {
+            const user = await this.getUserByID(userID);
+            if (!user) {
+                try {
+                    await this.database.runCommand(`INSERT INTO users (user_id, username) VALUES (?, ?)`, [userID, username]);
+                    console.log("created user!");
+                    const newUser = new User(userID, username, (user) => this.removeUserFromCache(user));
+                    this.users.set(newUser.userID, newUser);
+                } catch (e) {
+                    console.error(e);
+                    throw `Couldn't add user '${userID}' to user cache`;
+                }
+            }
         }
-        this.tokenMap.set(token, response.id);
-        let user = await this.getUserByID(response.id);
-        if (user) return user;
-        user = new User(response.id, response.email, response.username, (user) => this.removeUserFromCache(user));
-        this.users.set(response.id, user);
-        try {
-            await this.database.runCommand(`INSERT INTO users (user_id, email, username) VALUES (?, ?, ?)`, [user.userID, user.email, user.username]);
-        } catch (e) {
-            console.error(`Couldn't add user '${user.userID}' to user cache`, e);
-        }
-        return user;
+
+        const token = JWT.sign({
+            sub: userID
+        }, "secretKey", {
+            expiresIn: "30d"
+        });
+        return token;
     }
 
     public static getAvatarUrl(userID: string) {

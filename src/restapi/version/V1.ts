@@ -9,7 +9,6 @@ import ChartManager from "../../chart/ChartManager.js";
 import FS from "fs";
 import Path from "path";
 import { DIRNAME, stripNonAlphanumeric } from "../../Utils.js";
-import Axios from "axios";
 import LyricsManager from "../../lyrics/LyricsManager.js";
 import UserCache from "../../authentication/UserCache.js";
 import ExternalCollection from "../../collection/ExternalCollection.js";
@@ -28,6 +27,8 @@ export default class APIVersionV1 extends APIVersion {
             });
         });
 
+
+
         this.createRoute("post", "/registryconnect", false, async requestInfo => {
             const identifier: string = requestInfo.body?.identifier;
             if (!identifier || typeof identifier != "string") throw new APIResponse(400, "Missing identifier");
@@ -35,6 +36,44 @@ export default class APIVersionV1 extends APIVersion {
             const response = RegistryConnectionsIndex.getInstance().getResponse(identifier);
             return new APIResponse(200, response);
         });
+
+
+
+        this.createRoute("post", "/login", false, async requestInfo => {
+            const userID: string = requestInfo.body?.user_id;
+            if (!userID) throw new APIResponse(400, `Missing property 'user_id'`);
+            if (typeof userID != "string") throw new APIResponse(400, `Invalid value for property 'user_id'`);
+            const publicKey: string = requestInfo.body?.public_key;
+            if (!publicKey) throw new APIResponse(400, `Missing property 'public_key'`);
+            if (typeof publicKey != "string") throw new APIResponse(400, `Invalid value for property 'public_key'`);
+
+            const response = UserCache.getInstance().generateAuthenticationSecret(userID, publicKey);
+            return new APIResponse(200, {
+                secret: response
+            });
+        });
+
+        this.createRoute("post", "/authenticate", false, async requestInfo => {
+            const userID: string = requestInfo.body?.user_id;
+            if (!userID) throw new APIResponse(400, `Missing property 'user_id'`);
+            if (typeof userID != "string") throw new APIResponse(400, `Invalid value for property 'user_id'`);
+
+            const secret: string = requestInfo.body?.secret;
+            if (!secret) throw new APIResponse(400, `Missing property 'secret'`);
+            if (typeof secret != "string") throw new APIResponse(400, `Invalid value for property 'secret'`);
+
+            const username: string = requestInfo.body?.username;
+            if (!username) throw new APIResponse(400, `Missing property 'username'`);
+            if (typeof username != "string") throw new APIResponse(400, `Invalid value for property 'username'`);
+
+            const userCache = UserCache.getInstance();
+            if (!userCache.verifyAuthenticationSecret(userID, secret)) throw new APIResponse(401, `Invalid secret`);
+
+            return new APIResponse(200, {
+                token: await userCache.generateJWT(userID, username)
+            });
+        });
+
 
 
         this.createRoute("get", "/services", false, async requestInfo => {

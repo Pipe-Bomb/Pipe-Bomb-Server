@@ -22,7 +22,6 @@ export default abstract class Database {
 )`,
 `CREATE TABLE "users" (
     "user_id" TEXT,
-    "email" TEXT,
     "username" TEXT,
     PRIMARY KEY("user_id")
 )`

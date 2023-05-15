@@ -69,8 +69,11 @@ export default class RestAPI {
             let user: User = null;
             try {
                 if (requireAuthentication) {
-                    user = await UserCache.getInstance().getUserByToken(req.headers.authorization);
-                    if (!user) throw new APIResponse(401, "Invalid access token");
+                    const token = req.headers.authorization;
+                    if (!token) throw new APIResponse(401, "Authentication rquired");
+                    if (!token.startsWith("JWT ")) throw new APIResponse(400, "Only JWTs are supported");
+                    user = await UserCache.getInstance().getUserByToken(token.substring(4));
+                    if (!user) throw new APIResponse(401, "Invalid JWT");
                 }
     
                 const requestInfo: RequestInfo = {
