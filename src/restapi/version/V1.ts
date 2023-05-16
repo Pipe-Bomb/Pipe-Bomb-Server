@@ -49,7 +49,7 @@ export default class APIVersionV1 extends APIVersion {
             if (typeof publicKey != "string") throw new APIResponse(400, `Invalid value for property 'public_key'`);
 
             const createIfMissing: boolean = requestInfo.body?.create_if_missing;
-            if (!createIfMissing) throw new APIResponse(400, `Missing property 'create_if_missing'`);
+            if (createIfMissing !== true && createIfMissing !== false) throw new APIResponse(400, `Missing property 'create_if_missing'`);
             if (typeof createIfMissing != "boolean") throw new APIResponse(400, `Invalid value for property 'create_if_missing'`);
 
 
