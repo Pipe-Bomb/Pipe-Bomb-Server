@@ -100,7 +100,7 @@ export default class UserCache {
         });
     }
 
-    public async generateAuthenticationSecret(userID: string, publicKey: string, onlyIfExists: boolean): string {
+    public async generateAuthenticationSecret(userID: string, publicKey: string, onlyIfExists: boolean): Promise<string> {
         const generatedUserID: string = Cryptico.publicKeyID(publicKey);
         if (generatedUserID != userID) throw new APIResponse(401, "User ID and public key don't match");
 
