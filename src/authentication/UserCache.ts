@@ -100,9 +100,16 @@ export default class UserCache {
         });
     }
 
-    public generateAuthenticationSecret(userID: string, publicKey: string): string {
+    public async generateAuthenticationSecret(userID: string, publicKey: string, onlyIfExists: boolean): string {
         const generatedUserID: string = Cryptico.publicKeyID(publicKey);
-        if (generatedUserID != userID) throw new APIResponse(401, "user ID and public key don't match");
+        if (generatedUserID != userID) throw new APIResponse(401, "User ID and public key don't match");
+
+        if (onlyIfExists) {
+            const user = await this.getUserByID(generatedUserID);
+            if (!user) throw new APIResponse(401, "User does not exist");
+        }
+        
+        
 
         let secret: string;
         do {

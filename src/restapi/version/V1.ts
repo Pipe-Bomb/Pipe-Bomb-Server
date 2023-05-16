@@ -43,11 +43,17 @@ export default class APIVersionV1 extends APIVersion {
             const userID: string = requestInfo.body?.user_id;
             if (!userID) throw new APIResponse(400, `Missing property 'user_id'`);
             if (typeof userID != "string") throw new APIResponse(400, `Invalid value for property 'user_id'`);
+
             const publicKey: string = requestInfo.body?.public_key;
             if (!publicKey) throw new APIResponse(400, `Missing property 'public_key'`);
             if (typeof publicKey != "string") throw new APIResponse(400, `Invalid value for property 'public_key'`);
 
-            const response = UserCache.getInstance().generateAuthenticationSecret(userID, publicKey);
+            const createIfMissing: boolean = requestInfo.body?.create_if_missing;
+            if (!createIfMissing) throw new APIResponse(400, `Missing property 'create_if_missing'`);
+            if (typeof createIfMissing != "boolean") throw new APIResponse(400, `Invalid value for property 'create_if_missing'`);
+
+
+            const response = await UserCache.getInstance().generateAuthenticationSecret(userID, publicKey, !createIfMissing);
             return new APIResponse(200, {
                 secret: response
             });
