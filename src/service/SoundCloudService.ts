@@ -193,7 +193,7 @@ export default class SoundCloudService extends StreamingService {
         return new Track("sc-" + trackInfo.id, {
             title: trackInfo.title,
             artists: [trackInfo.user.username],
-            image: trackInfo?.artwork_url || null,
+            image: trackInfo?.artwork_url || trackInfo?.user?.avatar_url || null,
             duration: trackInfo.duration / 1000,
             originalUrl: trackInfo.permalink_url
         });
