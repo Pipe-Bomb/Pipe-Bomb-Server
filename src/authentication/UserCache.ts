@@ -58,21 +58,28 @@ export default class UserCache {
 
     public removeUserFromCache(user: string | User) {
         if (user instanceof User) {
-            user = user.userID;
+            const existingUser = this.users.get(user.userID);
+            if (existingUser == user) {
+                this.users.delete(user.userID);
+            }
+        } else {
+            this.users.delete(user);
         }
-        this.users.delete(user);
+        
     }
 
-    public async getUserByID(userID: string): Promise<User> {
-        let user = this.users.get(userID);
-        if (user) {
-            user.resetCacheTimeout();
-            return user;
+    public async getUserByID(userID: string, noCache?: boolean): Promise<User> {
+        if (!noCache) {
+            let user = this.users.get(userID);
+            if (user) {
+                user.resetCacheTimeout();
+                return user;
+            }
         }
         try {
             const cache = await this.database.runQuery("SELECT * FROM users WHERE user_id = ?", [userID]);
             if (cache.length) {
-                const user = new User(cache[0].user_id, cache[0].username, (user) => this.removeUserFromCache(user));
+                const user = new User(cache[0].user_id, cache[0].username, user => this.removeUserFromCache(user));
                 this.users.set(user.userID, user);
                 return user;
             }
@@ -109,8 +116,6 @@ export default class UserCache {
             if (!user) throw new APIResponse(401, "User does not exist");
         }
         
-        
-
         let secret: string;
         do {
             secret = randomBytes(300).toString("base64");
@@ -133,12 +138,12 @@ export default class UserCache {
 
     public async generateJWT(userID: string, username?: string) {
         if (username) {
-            const user = await this.getUserByID(userID);
+            const user = await this.getUserByID(userID, true);
             if (!user) {
                 try {
                     await this.database.runCommand(`INSERT INTO users (user_id, username) VALUES (?, ?)`, [userID, username]);
-                    console.log("created user!");
-                    const newUser = new User(userID, username, (user) => this.removeUserFromCache(user));
+                    console.log(`User '${username}' registered! (${userID})`);
+                    const newUser = new User(userID, username, user => this.removeUserFromCache(user));
                     this.users.set(newUser.userID, newUser);
                 } catch (e) {
                     console.error(e);
