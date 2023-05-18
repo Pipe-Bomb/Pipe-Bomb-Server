@@ -7,7 +7,7 @@ import StreamingService, { SearchOptions, UrlType } from "./StreamingService.js"
 import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
 import Axios from "axios";
-import { removeDuplicates, removeItems } from "../Utils.js";
+import { getHttpAgent, removeDuplicates, removeItems } from "../Utils.js";
 import ExternalCollection from "../collection/ExternalCollection.js";
 
 export default class YoutubeService extends StreamingService {
@@ -92,7 +92,9 @@ export default class YoutubeService extends StreamingService {
                 
                 async function checkFormat(url: string): Promise<StreamInfo> {
                     try {
-                        const { headers, status } = await Axios.head(url);
+                        const { headers, status } = await Axios.head(url, {
+                            ...getHttpAgent()
+                        });
                         if (status == 200) {
                             return new StreamInfo(url, headers["content-type"], headers["content-length"]);
                         }

@@ -4,21 +4,22 @@ import { generateSlug } from "random-word-slugs";
 console.log("Loading config...");
 
 export interface ConfigTemplate {
-    server_port: number,
-    server_name: string,
-    server_address: string,
-    server_registry_urls: string[],
-    collection_cache_time: number,
-    external_collection_cache_time: number,
-    user_cache_time: number,
-    track_cache_time: number,
-    audio_cache_time: number,
-    lyrics_cache_time: number,
-    spotify_track_conversion_cache_time: number,
-    spotify_client_id: string,
-    spotify_client_secret: string,
-    lyrics_source_hierarchy: string[],
+    server_port: number
+    server_name: string
+    server_address: string
+    server_registry_urls: string[]
+    collection_cache_time: number
+    external_collection_cache_time: number
+    user_cache_time: number
+    track_cache_time: number
+    audio_cache_time: number
+    lyrics_cache_time: number
+    spotify_track_conversion_cache_time: number
+    spotify_client_id: string
+    spotify_client_secret: string
+    lyrics_source_hierarchy: string[]
     url_open_proxy: string
+    ipv6_block: string
 }
 
 const defaultConfig: ConfigTemplate = {
@@ -39,7 +40,8 @@ const defaultConfig: ConfigTemplate = {
     spotify_client_id: "",
     spotify_client_secret: "",
     lyrics_source_hierarchy: ["deezer", "spotify"],
-    url_open_proxy: "https://open.pipebomb.net"
+    url_open_proxy: "https://open.pipebomb.net",
+    ipv6_block: ""
 }
 
 let Config: ConfigTemplate;

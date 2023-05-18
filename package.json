@@ -8,7 +8,9 @@
     "test": "cross-env YTDL_NO_UPDATE=1 node --trace-warnings dist/index.js",
     "watch": "npx tsc -w",
     "build": "npx tsc",
-    "start": "npm run build && npm run test"
+    "start": "npm run build && npm run test",
+    "quickstart": "npx ts-node --esm src/index.ts",
+    "dev": "nodemon"
   },
   "keywords": [],
   "author": "eyezah",
@@ -22,6 +24,7 @@
     "@types/spotify-web-api-node": "^5.0.7",
     "@types/yt-search": "^2.3.2",
     "cross-env": "^7.0.3",
+    "nodemon": "^2.0.22",
     "typescript": "^5.0.2"
   },
   "dependencies": {
@@ -30,8 +33,11 @@
     "cors": "^2.8.5",
     "cryptico": "^1.0.2",
     "express": "^4.18.2",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0",
     "jimp": "^0.22.8",
     "jsonwebtoken": "^9.0.0",
+    "node-ts": "^6.0.0",
     "node-youtube-music": "^0.10.2",
     "pmx": "^1.6.7",
     "random-word-slugs": "^0.1.6",

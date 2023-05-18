@@ -1,5 +1,9 @@
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+import Http from "http";
+import Https from "https";
+import Config from "./Config.js";
+const CONFIG = Config();
 
 export function shuffle<Type>(array: Type[]) {
     const dupe = Array.from(array);
@@ -109,7 +113,7 @@ export function generateHash(seed?: string | number) {
     }
 
     function generate(seed: string) {
-        var hash = 0, i, chr;
+        var hash = 0, i: number, chr: number;
         if (seed.length === 0) return hash;
         for (i = 0; i < seed.length; i++) {
             chr = seed.charCodeAt(i);
@@ -138,4 +142,59 @@ export function generateHash(seed?: string | number) {
     }
 
     return nextHash(numberSeed);
+}
+
+
+const IPV6_REGEX = /^(([0-9a-f]{1,4}:)(:[0-9a-f]{1,4}){1,6}|([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,5}|([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,4}|([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,3}|([0-9a-f]{1,4}:){1,5}(:[0-9a-f]{1,4}){1,2}|([0-9a-f]{1,4}:){1,6}(:[0-9a-f]{1,4})|([0-9a-f]{1,4}:){1,7}(([0-9a-f]{1,4})|:))\/(1[0-1]\d|12[0-8]|\d{1,2})$/;
+
+export function generateIpv6(block: string) {
+    if (!isIPv6(block)) throw Error('Invalid IPv6 format');
+    const [rawAddr, rawMask] = block.split('/');
+    let base10Mask = parseInt(rawMask);
+    if (!base10Mask || base10Mask > 128 || base10Mask < 24) throw Error('Invalid IPv6 subnet');
+    const base10addr = normalizeIp(rawAddr);
+    const randomAddr = new Array(8).fill(1).map(() => Math.floor(Math.random() * 0xffff));
+  
+    const mergedAddr = randomAddr.map((randomItem, idx) => {
+      const staticBits = Math.min(base10Mask, 16);
+      base10Mask -= staticBits;
+      const mask = 0xffff - ((2 ** (16 - staticBits)) - 1);
+      return (base10addr[idx] & mask) + (randomItem & (mask ^ 0xffff));
+    });
+    return mergedAddr.map(x => x.toString(16)).join(':');
+  };
+
+export function isIPv6(ip: string) {
+    return IPV6_REGEX.test(ip);
+}
+
+export default function normalizeIp(ip: string) {
+    const parts = ip.split('::').map(x => x.split(':'));
+    const partStart = parts[0] || [];
+    const partEnd = parts[1] || [];
+    partEnd.reverse();
+    const fullIP: number[] = new Array(8).fill(0);
+    for (let i = 0; i < Math.min(partStart.length, 8); i++) {
+      fullIP[i] = parseInt(partStart[i], 16) || 0;
+    }
+    for (let i = 0; i < Math.min(partEnd.length, 8); i++) {
+      fullIP[7 - i] = parseInt(partEnd[i], 16) || 0;
+    }
+    return fullIP;
+};
+
+export function getHttpAgent() {
+    const subnet = CONFIG.ipv6_block;
+    if (!subnet) return {};
+
+    const options = {
+        localAddress: generateIpv6(subnet)
+    };
+
+    console.log(options.localAddress);
+
+    return {
+        httpAgent: new Http.Agent(options),
+        httpsAgent: new Https.Agent(options)
+    };
 }

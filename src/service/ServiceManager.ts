@@ -8,6 +8,7 @@ import PartialContentInfo from "../restapi/PartialContentInfo.js";
 import Axios from "axios";
 import Pmx from "pmx";
 import ExternalCollectionCache from "../collection/ExternalCollectionCache.js";
+import { getHttpAgent } from "../Utils.js";
 
 const probe = Pmx.probe();
 const config = Config();
@@ -213,7 +214,8 @@ export default class ServiceManager {
 
         if (!audio.contentLength && typeof audio.content == "string") {
             const { headers } = await Axios.head(audio.content, {
-                timeout: 3000
+                timeout: 3000,
+                ...getHttpAgent()
             });
             audio.contentLength = parseInt(headers["content-length"]);
         }
@@ -247,7 +249,8 @@ export default class ServiceManager {
                 headers: {
                     Range: `bytes=${start}-${end}`,
                 },
-                timeout: 5000
+                timeout: 5000,
+                ...getHttpAgent()
             });
             return new APIResponse(206, new PartialContentInfo(data, start, end, size, audio.contentType));
         } catch (e) {
