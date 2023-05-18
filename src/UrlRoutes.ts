@@ -56,7 +56,7 @@ export default class UrlRoutes {
         });
 
         this.newRedirect("playlist", "playlist", async id => {
-            const collection = await CollectionCache.getInstance().getCollection(id, true);
+            const collection = await CollectionCache.getInstance().getCollection(id);
             return {
                 title: collection.getName(),
                 subtitle: "By " + collection.owner.username,

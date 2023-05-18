@@ -26,9 +26,7 @@ export default class CollectionCache {
         return this;
     }
 
-    public async getCollection(collectionID: string, fastLoad: boolean, user?: User): Promise<Collection> {
-        // todo: add authorization
-
+    public async getCollection(collectionID: string, user?: User): Promise<Collection> {
         const cachedCollection = this.collections.get(collectionID);
         if (cachedCollection) return cachedCollection;
 
@@ -48,8 +46,6 @@ export default class CollectionCache {
             (collection) => this.removeCollectionFromCache(collection),
             await UserCache.getInstance().getUserByID(playlistInfo[0].user_id)
         );
-        
-        // if (!fastLoad) await collection.loadPage(0);
 
         this.collections.set(collectionID, collection);
 
@@ -71,9 +67,7 @@ export default class CollectionCache {
                 try {
                     const track = await ServiceManager.getInstance().getTrackInfo(trackID);
                     await collection.addTrack(track);
-                } catch (e) {
-                    //console.error(e);
-                }
+                } catch (e) {}
             }
             this.collections.set(collection.collectionID, collection);
             return collection;
@@ -99,7 +93,7 @@ export default class CollectionCache {
             const collections: Collection[] = [];
             for (let entry of data) {
                 try {
-                    collections.push(await this.getCollection(entry.playlist_id, true));
+                    collections.push(await this.getCollection(entry.playlist_id));
                 } catch (e) {
                     console.error(e);
                 }

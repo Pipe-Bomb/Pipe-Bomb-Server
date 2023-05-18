@@ -135,7 +135,7 @@ export default class APIVersionV1 extends APIVersion {
 
         this.createRoute("get", "/playlists/:playlist_id", true, async requestInfo => { // get playlist
             const collection = await this.getCollectionFromRequestInfo(requestInfo);
-            await collection.loadPage(0);
+            // await collection.loadPage(0); // load first 10 tracks
             return new APIResponse(200, collection.toJson());
         });
 
@@ -147,6 +147,7 @@ export default class APIVersionV1 extends APIVersion {
 
         this.createRoute("get", "/playlists/:playlist_id/thumbnail", false, async requestInfo => {
             const collection = await this.getCollectionFromRequestInfo(requestInfo);
+            await collection.loadPage(0);
             const image = await generateImageFromTracklist(collection.getTracklist());
             if (!image) return new APIResponse(206, "No content");
             return new APIResponse(200, image, {
@@ -406,6 +407,6 @@ export default class APIVersionV1 extends APIVersion {
     private async getCollectionFromRequestInfo(requestInfo: RequestInfo) {
         if (!requestInfo.parameters.playlist_id) throw new APIResponse(400, `Missing collection ID`);
         if (isNaN(parseInt(requestInfo.parameters.playlist_id))) throw new APIResponse(400, `Invalid collection ID '${requestInfo.parameters.playlist_id}'`);
-        return await CollectionCache.getInstance().getCollection(requestInfo.parameters.playlist_id, false, requestInfo.user);
+        return await CollectionCache.getInstance().getCollection(requestInfo.parameters.playlist_id, requestInfo.user);
     }
 }

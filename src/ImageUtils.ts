@@ -13,7 +13,6 @@ export async function getImageBuffer(url: string): Promise<Buffer> {
         if (parts.length != 2 || parts[0] != "image") throw "invalid content type";
 
         if (!["png", "jpeg", "bmp", "tiff", "gif"].includes(parts[1])) {
-            console.log("image needs converting!", parts[1]);
             const buffer = await Sharp(data.data).toFormat("jpg").toBuffer();
             return buffer;
         }
