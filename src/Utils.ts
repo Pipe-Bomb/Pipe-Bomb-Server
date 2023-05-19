@@ -2,6 +2,7 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import Http from "http";
 import Https from "https";
+import Axios from "axios";
 import Config from "./Config.js";
 const CONFIG = Config();
 
@@ -203,3 +204,5 @@ export function getHttpAgent() {
 for (let i = 0; i < 10; i++) {
     console.log(generateIpv6(CONFIG.ipv6_block));
 }
+
+Axios.get("http://development.eyezah.com").then(console.log, console.error);
