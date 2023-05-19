@@ -205,4 +205,4 @@ for (let i = 0; i < 10; i++) {
     console.log(generateIpv6(CONFIG.ipv6_block));
 }
 
-Axios.get("http://development.eyezah.com").then(console.log, console.error);
+Axios.get("https://development.eyezah.com").then(console.log, console.error);
