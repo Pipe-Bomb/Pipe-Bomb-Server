@@ -189,7 +189,7 @@ export function getHttpAgent() {
     if (!subnet) return {};
 
     const options = {
-        localAddress: generateIpv6(subnet)
+        localAddress: generateIpv6(subnet) + "%eth0"
     };
 
     console.log(options.localAddress);
