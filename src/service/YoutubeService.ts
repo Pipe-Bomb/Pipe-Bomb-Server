@@ -71,7 +71,9 @@ export default class YoutubeService extends StreamingService {
             try {
                 let info: YTDL.videoInfo;
                 try {
+                    console.log("trying to get track info");
                     info = await YTDL.getInfo(trackID);
+                    console.log("got info");
                     if (!info) throw "invalid";
                 } catch (e) {
                     console.log(e);
@@ -92,6 +94,7 @@ export default class YoutubeService extends StreamingService {
                 
                 async function checkFormat(url: string): Promise<StreamInfo> {
                     try {
+                        console.log("checking", url);
                         const { headers, status } = await Axios.head(url, {
                             ...getHttpAgent()
                         });
