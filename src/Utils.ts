@@ -2,7 +2,6 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import Http from "http";
 import Https from "https";
-import Axios from "axios";
 import Config from "./Config.js";
 const CONFIG = Config();
 
@@ -185,13 +184,17 @@ export default function normalizeIp(ip: string) {
 };
 
 export function getHttpAgent() {
-    const subnet = CONFIG.ipv6_block;
-    if (!subnet) return {};
+    let ip: string = null;
+
+    if (CONFIG.ipv6_range.length) {
+        ip = CONFIG.ipv6_range[CONFIG.ipv6_range.length * Math.random()];
+    } else {
+        if (!CONFIG.ipv6_block) return {};
+        ip = generateIpv6(CONFIG.ipv6_block);
+    }
 
     const options = {
-        localAddress: generateIpv6(subnet),
-        family: 6,
-        host: "::1"
+        localAddress: ip
     };
 
     console.log(options.localAddress);

@@ -20,6 +20,7 @@ export interface ConfigTemplate {
     lyrics_source_hierarchy: string[]
     url_open_proxy: string
     ipv6_block: string
+    ipv6_range: string[]
 }
 
 const defaultConfig: ConfigTemplate = {
@@ -41,7 +42,8 @@ const defaultConfig: ConfigTemplate = {
     spotify_client_secret: "",
     lyrics_source_hierarchy: ["deezer", "spotify"],
     url_open_proxy: "https://open.pipebomb.net",
-    ipv6_block: ""
+    ipv6_block: "",
+    ipv6_range: []
 }
 
 let Config: ConfigTemplate;
