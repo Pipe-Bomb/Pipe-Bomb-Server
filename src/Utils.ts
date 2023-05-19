@@ -190,7 +190,8 @@ export function getHttpAgent() {
 
     const options = {
         localAddress: generateIpv6(subnet),
-        family: 6
+        family: 6,
+        host: "::1"
     };
 
     console.log(options.localAddress);
