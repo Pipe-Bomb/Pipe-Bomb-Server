@@ -198,3 +198,7 @@ export function getHttpAgent() {
         httpsAgent: new Https.Agent(options)
     };
 }
+
+for (let i = 0; i < 10; i++) {
+    console.log(generateIpv6(CONFIG.ipv6_block));
+}
