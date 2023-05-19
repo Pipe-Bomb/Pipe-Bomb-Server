@@ -184,14 +184,18 @@ export default function normalizeIp(ip: string) {
 };
 
 export function getHttpAgent() {
-    const subnet = CONFIG.ipv6_block;
-    if (!subnet) return {};
+    let ip: string = null;
+
+    if (CONFIG.ipv6_range.length) {
+        ip = CONFIG.ipv6_range[CONFIG.ipv6_range.length * Math.random()];
+    } else {
+        if (!CONFIG.ipv6_block) return {};
+        ip = generateIpv6(CONFIG.ipv6_block);
+    }
 
     const options = {
-        localAddress: generateIpv6(subnet)
+        localAddress: ip
     };
-
-    console.log(options.localAddress);
 
     return {
         httpAgent: new Http.Agent(options),

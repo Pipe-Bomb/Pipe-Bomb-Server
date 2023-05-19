@@ -98,7 +98,9 @@ export default class YoutubeService extends StreamingService {
                         if (status == 200) {
                             return new StreamInfo(url, headers["content-type"], headers["content-length"]);
                         }
-                    } catch {}
+                    } catch (e) {
+                        console.error(e?.cause);
+                    }
                     return null;
                 }
 
