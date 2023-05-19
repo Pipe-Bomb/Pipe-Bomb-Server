@@ -92,11 +92,9 @@ export default class YoutubeService extends StreamingService {
                 
                 async function checkFormat(url: string): Promise<StreamInfo> {
                     try {
-                        console.log("checking", url);
                         const { headers, status } = await Axios.head(url, {
                             ...getHttpAgent()
                         });
-                        console.log(status, headers);
                         if (status == 200) {
                             return new StreamInfo(url, headers["content-type"], headers["content-length"]);
                         }

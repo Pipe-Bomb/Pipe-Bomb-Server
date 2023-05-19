@@ -197,8 +197,6 @@ export function getHttpAgent() {
         localAddress: ip
     };
 
-    console.log(options.localAddress);
-
     return {
         httpAgent: new Http.Agent(options),
         httpsAgent: new Https.Agent(options)
