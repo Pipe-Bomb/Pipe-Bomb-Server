@@ -80,15 +80,9 @@ export default class YoutubeService extends StreamingService {
                 
                 const audioFormats = YTDL.filterFormats(info.formats, "audioonly");
 
-                const reorderedFormats: YTDL.videoFormat[] = [];
-                for (let format of audioFormats) {
-                    if (format.audioQuality == "AUDIO_QUALITY_MEDIUM") {
-                        const index = audioFormats.indexOf(format);
-                        if (index >= 0) audioFormats.splice(index, 1);
-                        reorderedFormats.push(format);
-                    }
-                }
-                reorderedFormats.push(...audioFormats);
+                audioFormats.sort((a, b) => {
+                    return b.audioBitrate - a.audioBitrate
+                });
                 
                 async function checkFormat(url: string): Promise<StreamInfo> {
                     try {
@@ -104,7 +98,7 @@ export default class YoutubeService extends StreamingService {
                     return null;
                 }
 
-                for (let format of reorderedFormats) {
+                for (let format of audioFormats) {
                     const streamInfo = await checkFormat(format.url);
                     if (streamInfo) return resolve(streamInfo);
                 }
