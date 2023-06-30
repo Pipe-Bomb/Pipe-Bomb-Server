@@ -12,10 +12,19 @@ import { concatArrayBuffers, removeDuplicates, removeItems, wait } from "../Util
 import ExternalCollection from "../collection/ExternalCollection.js";
 
 let clientID: string = null;
+let authFailed = false;
 const BASE_URL = "https://api-v2.soundcloud.com";
 
 async function reloadClientID() {
-    await SCDL.connect();
+    try {
+        await SCDL.connect();
+    } catch (e) {
+        console.error("Failed to authenticate with SoundCloud.");
+        clientID = null;
+        authFailed = true;
+        return;
+    }
+    authFailed = false;
     if (!clientID) {
         console.log("Connected to SoundCloud!");
     }
@@ -29,9 +38,12 @@ reloadClientID();
 setInterval(reloadClientID, 600_000);
 
 export async function getClientID() {
-    return new Promise<string>(async resolve => {
+    return new Promise<string>(async (resolve, reject) => {
         if (clientID) return resolve(clientID);
         while (!clientID) {
+            if (authFailed) {
+                return reject("SoundCloud service is inactive");
+            }
             await wait(100);
         }
         resolve(clientID);
