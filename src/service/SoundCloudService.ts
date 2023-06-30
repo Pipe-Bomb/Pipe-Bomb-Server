@@ -96,9 +96,8 @@ export default class SoundCloudService extends StreamingService {
     }
 
     public async search(query: string, types: SearchOptions[], page?: number): Promise<(Track | ExternalCollection)[]> {
-        await getClientID();
-
         try {
+            await getClientID();
             const results = await SCDL.search({
                 query,
                 limit: 20,
@@ -142,9 +141,8 @@ export default class SoundCloudService extends StreamingService {
         trackID = this.convertTrackIDToLocal(trackID);
 
         return new Promise(async (resolve, reject) => {
-            await getClientID();
-
             try {
+                await getClientID();
                 const trackData = await SCDL.tracks.getTrack("https://api.soundcloud.com/tracks/" + trackID);
                 for (let transcoding of trackData.media.transcodings) {
                     if (transcoding.format.protocol != "progressive") continue;
