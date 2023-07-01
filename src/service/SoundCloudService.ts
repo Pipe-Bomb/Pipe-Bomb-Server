@@ -43,13 +43,14 @@ Commands.addHandler("soundcloud clientid set", (args) => {
     }
     console.log(`Setting SoundCloud client ID to '${args[0]}'`);
     (SCDL as any).clientId = args[0];
+    clientID = args[0];
     clearInterval(reloadInterval);
     reloadInterval = setInterval(reloadClientID, 600_000);
 });
 
 Commands.addHandler("soundcloud clientid", () => {
     if (!clientID) {
-        console.log("Client ID has not been set");
+        return console.log("Client ID has not been set");
     }
     console.log(`Client ID: '${clientID}'`);
 });
