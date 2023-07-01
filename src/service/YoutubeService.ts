@@ -19,7 +19,7 @@ export default class YoutubeService extends StreamingService {
         });
 
         YTDL.setIpBindCallback(() => {
-            return getHttpAgent().httpsAgent;
+            return getHttpAgent().httpsAgent as any;
         });
     }
 
