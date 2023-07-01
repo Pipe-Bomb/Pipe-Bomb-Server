@@ -10,6 +10,7 @@ import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
 import { concatArrayBuffers, removeDuplicates, removeItems, wait } from "../Utils.js";
 import ExternalCollection from "../collection/ExternalCollection.js";
+import Commands from "../Commands.js";
 
 let clientID: string = null;
 let authFailed = false;
@@ -28,14 +29,30 @@ async function reloadClientID() {
     if (!clientID) {
         console.log("Connected to SoundCloud!");
     }
-    const anyReference: any = SCDL;
-    clientID = anyReference.clientId;
+    clientID = (SCDL as any).clientId;
 }
 
 console.log("Connecting to SoundCloud...");
 reloadClientID();
 
-setInterval(reloadClientID, 600_000);
+let reloadInterval = setInterval(reloadClientID, 600_000);
+
+Commands.addHandler("soundcloud clientid set", (args) => {
+    if (!args.length) {
+        return console.log("Usage: soundcloud clientid <client id>");
+    }
+    console.log(`Setting SoundCloud client ID to '${args[0]}'`);
+    (SCDL as any).clientId = args[0];
+    clearInterval(reloadInterval);
+    reloadInterval = setInterval(reloadClientID, 600_000);
+});
+
+Commands.addHandler("soundcloud clientid", () => {
+    if (!clientID) {
+        console.log("Client ID has not been set");
+    }
+    console.log(`Client ID: '${clientID}'`);
+});
 
 export async function getClientID() {
     return new Promise<string>(async (resolve, reject) => {
