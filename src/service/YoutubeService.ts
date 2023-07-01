@@ -71,9 +71,11 @@ export default class YoutubeService extends StreamingService {
             try {
                 let info: YTDL.videoInfo;
                 try {
+                    console.log("getting info");
                     info = await YTDL.getInfo(trackID);
                     if (!info) throw "invalid";
                 } catch (e) {
+                    console.log("failed to get info");
                     console.log(e);
                     return reject(new APIResponse(400, `Invalid track ID '${trackID}'`));
                 }
