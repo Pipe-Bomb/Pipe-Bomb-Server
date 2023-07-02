@@ -157,7 +157,7 @@ export default class APIVersionV1 extends APIVersion {
         });
         
 
-        this.createRoute("put", "/playlists/:playlist_id", true, async requestInfo => { // add/remove tracks to playlist
+        this.createRoute("patch", "/playlists/:playlist_id", true, async requestInfo => { // add/remove tracks to playlist
             const collection = await this.getCollectionFromRequestInfo(requestInfo);
             if (collection.owner.userID != requestInfo.user.userID) throw new APIResponse(401, `Not authorized to edit playlist`);
 
