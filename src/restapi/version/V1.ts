@@ -208,8 +208,7 @@ export default class APIVersionV1 extends APIVersion {
 
         this.createRoute("get", "/externalplaylists/:playlist_id/thumbnail", false, async requestInfo => {
             const externalPlaylist = await ServiceManager.getInstance().getExternalCollection("playlist", requestInfo.parameters.playlist_id);
-            
-            
+
             try {
                 if (!externalPlaylist.artworkUrl) throw "no artwork";
                 const image = await cropImage(externalPlaylist.artworkUrl);
