@@ -93,7 +93,7 @@ export default class CollectionCache {
             const collections: Collection[] = [];
             for (let entry of data) {
                 try {
-                    collections.push(await this.getCollection(entry.playlist_id));
+                    collections.push(await this.getCollection(entry.playlist_id.toString()));
                 } catch (e) {
                     console.error(e);
                 }
