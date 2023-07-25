@@ -4,8 +4,7 @@
         "moduleResolution": "nodenext",
         "target": "ES2020",
         "sourceMap": true,
-        "outDir": "dist",
-        "watch": false
+        "outDir": "dist"
     },
     "include": [
         "src/**/*"
