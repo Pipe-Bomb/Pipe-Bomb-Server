@@ -37,6 +37,7 @@ new BeatportChart("genre/drum-bass/1/top-100", "beatport-dnb-top-100", "Beatport
 new BeatportChart("genre/tech-house/11/top-100", "beatport-tech-house-top-100", "Beatport Tech House Top 100");
 new BeatportChart("genre/dubstep/18/top-100", "beatport-dubstep-top-100", "Beatport Dubstep Top 100");
 new BeatportChart("genre/bass-house/91/top-100", "beatport-bass-house-top-100", "Beatport Bass House Top 100");
+new BeatportChart("genre/drum-bass/1/hype-100", "beatport-dnb-hype-100", "Beatport Drum & Bass Hype 100");
 
 new SoundCloudChart("charts-top:all-music", "soundcloud-top-50", "SoundCloud Top 50");
 new SoundCloudChart("charts-top:hiphoprap", "soundcloud-top-50-hiphoprap", "SoundCloud Hip-Hop & Rap Top 50");
