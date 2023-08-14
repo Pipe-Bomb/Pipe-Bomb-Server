@@ -49,6 +49,6 @@
     "youtube-music-api": "github:Pipe-Bomb/Youtube-Music-API",
     "yt-search": "^2.10.4",
     "ytdl-core": "github:eyezahhhh/node-ytdl-core",
-    "ytsr": "^3.8.0"
+    "ytsr": "^3.8.4"
   }
 }
