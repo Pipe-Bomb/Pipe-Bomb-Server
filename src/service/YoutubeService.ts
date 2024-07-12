@@ -6,7 +6,7 @@ import Exception from "../response/Exception.js";
 import StreamingService, { SearchOptions, UrlType } from "./StreamingService.js";
 import APIResponse from "../response/APIResponse.js";
 import StreamInfo from "./StreamInfo.js";
-import Axios from "axios";
+import Axios, { AxiosError } from "axios";
 import { getHttpAgent, removeDuplicates, removeItems } from "../Utils.js";
 import ExternalCollection from "../collection/ExternalCollection.js";
 
@@ -18,9 +18,10 @@ export default class YoutubeService extends StreamingService {
             search: true
         });
 
-        YTDL.setIpBindCallback(() => {
-            return getHttpAgent().httpsAgent as any;
-        });
+        // // @ts-expect-error
+        // YTDL.setIpBindCallback(() => {
+        //     return getHttpAgent().httpsAgent as any;
+        // });
     }
 
     public async convertUrl(url: string): Promise<UrlType> {
@@ -68,21 +69,56 @@ export default class YoutubeService extends StreamingService {
         }
     }
 
+    private async getFormats(trackId: string): Promise<YTDL.videoFormat[]> {
+        const apiKey = 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc'
+        const headers = {
+            'X-YouTube-Client-Name': '5',
+            'X-YouTube-Client-Version': '19.09.3',
+            Origin: 'https://www.youtube.com',
+            'User-Agent': 'com.google.ios.youtube/19.09.3 (iPhone14,3; U; CPU iOS 15_6 like Mac OS X)',
+            'content-type': 'application/json'
+        }
+
+        const body = {
+            context: {
+            client: {
+                clientName: 'IOS',
+                clientVersion: '19.09.3',
+                deviceModel: 'iPhone14,3',
+                userAgent: 'com.google.ios.youtube/19.09.3 (iPhone14,3; U; CPU iOS 15_6 like Mac OS X)',
+                hl: 'en',
+                timeZone: 'UTC',
+                utcOffsetMinutes: 0
+            }
+            },
+            videoId: trackId,
+            playbackContext: { contentPlaybackContext: { html5Preference: 'HTML5_PREF_WANTS' } },
+            contentCheckOk: true,
+            racyCheckOk: true
+        };
+
+        const response = await Axios.post(`https://www.youtube.com/youtubei/v1/player?key${apiKey}&prettyPrint=false`, body, { headers });
+
+        const formats = response.data.streamingData.adaptiveFormats;
+        return formats;
+    }
+
     private forceGetAudio(trackID: string): Promise<StreamInfo> {
         trackID = this.convertTrackIDToLocal(trackID);
 
         return new Promise<StreamInfo>(async (resolve, reject) => {
             try {
-                let info: YTDL.videoInfo;
+                let formats: YTDL.videoFormat[];
+        
                 try {
-                    info = await YTDL.getInfo(trackID);
-                    if (!info) throw "invalid";
+                    formats = await this.getFormats(trackID);
+                    if (!formats?.length) throw "invalid";
                 } catch (e) {
                     console.log(e);
                     return reject(new APIResponse(400, `Invalid track ID '${trackID}'`));
                 }
-                
-                const audioFormats = YTDL.filterFormats(info.formats, "audioonly");
+
+                const audioFormats = formats.filter(format => format.mimeType.startsWith("audio/mp4"));
 
                 audioFormats.sort((a, b) => {
                     return b.audioBitrate - a.audioBitrate
@@ -90,6 +126,8 @@ export default class YoutubeService extends StreamingService {
                 
                 async function checkFormat(url: string): Promise<StreamInfo> {
                     try {
+                        console.log(getHttpAgent());
+
                         const { headers, status } = await Axios.head(url, {
                             ...getHttpAgent()
                         });
@@ -97,7 +135,11 @@ export default class YoutubeService extends StreamingService {
                             return new StreamInfo(url, headers["content-type"], headers["content-length"]);
                         }
                     } catch (e) {
-                        console.error(e?.cause);
+                        if (e instanceof AxiosError) {
+                            console.error(e.response?.status, e.response.statusText, e.response.data);
+                        } else {
+                            console.error(e);
+                        }
                     }
                     return null;
                 }

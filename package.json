@@ -48,7 +48,7 @@
     "spotify-web-api-node": "^5.0.2",
     "youtube-music-api": "github:Pipe-Bomb/Youtube-Music-API",
     "yt-search": "^2.10.4",
-    "ytdl-core": "github:eyezahhhh/node-ytdl-core",
+    "ytdl-core": "^4.11.5",
     "ytsr": "^3.8.4"
   }
 }
