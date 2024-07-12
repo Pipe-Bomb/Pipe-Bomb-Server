@@ -97,7 +97,10 @@ export default class YoutubeService extends StreamingService {
             racyCheckOk: true
         };
 
-        const response = await Axios.post(`https://www.youtube.com/youtubei/v1/player?key${apiKey}&prettyPrint=false`, body, { headers });
+        const url = `https://www.youtube.com/youtubei/v1/player?key${apiKey}&prettyPrint=false`;
+        console.log(url);
+        const response = await Axios.post(url, body, { headers });
+        console.log(response.status, response.data);
 
         const formats = response.data.streamingData.adaptiveFormats;
         return formats;
