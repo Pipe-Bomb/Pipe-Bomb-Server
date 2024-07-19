@@ -16,7 +16,7 @@ services:
     #   - ./Config.json:/usr/src/app/Config.json
     #   # the database has a volume incase you want to move/backup or do anything else with the files
     #   - ./database/music.db:/usr/src/app/music.db
-    #   - ./database/music.db-smh:/usr/src/app/music.db-shm
+    #   - ./database/music.db-shm:/usr/src/app/music.db-shm
     #   - ./database/music.db-wal:/usr/src/app/music.db-wal
     restart: unless-stopped
 ```
