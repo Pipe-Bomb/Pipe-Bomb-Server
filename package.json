@@ -9,7 +9,7 @@
     "watch": "npx tsc -w",
     "build": "npx tsc",
     "start": "npm run build && npm run test",
-    "quickstart": "npx ts-node --esm src/index.ts",
+    "quickstart": "tsx src/index",
     "dev": "nodemon"
   },
   "keywords": [],
@@ -26,6 +26,7 @@
     "@types/yt-search": "^2.3.2",
     "cross-env": "^7.0.3",
     "nodemon": "^2.0.22",
+    "tsx": "^4.19.1",
     "typescript": "^5.0.2"
   },
   "dependencies": {

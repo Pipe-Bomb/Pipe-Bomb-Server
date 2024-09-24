@@ -92,7 +92,9 @@ export default class YoutubeMusicService extends StreamingService {
                             out.push(this.convertJsonToTrack(track));
                         }
                     }
-                }).finally(end);
+                }).finally(end).catch(e => {
+                    console.log(`YTM TRACK SEARCH ERROR "${query}"`);
+                });
             }
             
             if (types.includes("playlists")) {
@@ -113,6 +115,8 @@ export default class YoutubeMusicService extends StreamingService {
                             
                             const collection = new ExternalCollection("playlist", link, "ym-" + playlist.playlistId, playlist.title, Date.now(), tracklist, playlist.thumbnailUrl);
                             out.push(collection);
+                        } catch (e) {
+                            console.log("PLAYLIST ERROR"); // todo: fix
                         } finally {
                             if (++playlistsDone >= playlists.length) {
                                 end();
@@ -123,7 +127,10 @@ export default class YoutubeMusicService extends StreamingService {
                     for (let playlist of playlists) {
                         doPlaylist(playlist);
                     }
-                }).catch(end);
+                }).catch(() => {
+                    console.log(`YTM PLAYLIST SEARCH ERROR`);
+                    end();
+                });
             }
         });
     }
